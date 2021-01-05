@@ -1,0 +1,56 @@
+<html>
+   <head>
+      <meta charset="UTF-8">
+	  <title>Test Client</title>
+   </head>
+   <body>
+      <script>
+		//Import der Faktorisierungsfunktion aus dem WebAssembly Modul
+		let factorial;
+		fetch("factorial.wasm")
+		.then(bytes => bytes.arrayBuffer())
+		.then(mod => WebAssembly.compile(mod))
+		.then(module => {return new WebAssembly.Instance(module) })
+		.then(instance => {
+			factorial = instance.exports._Z4facti;
+		});
+	  
+		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
+		var socket = new WebSocket('ws://localhost:80');
+	  
+		//Funktion bei Verbindungsaufbau
+		socket.onopen = function (){
+			console.log("Verbindung aufgebaut.\n");
+			//Sendet Server Nachricht
+			socket.send("Ping"); 
+		};
+		
+		//Log bei Fehler
+		socket.onerror = function (error){
+			console.log("WebSocket Error " + error);
+		};
+		
+		//callback-Funktion wird gerufen, wenn eine neue Websocket-Nachricht eintrifft
+		socket.onmessage = function (messageEvent){
+			console.log("Erhalte Nachricht von Server: " + messageEvent.data);
+			//console.log("${messageEvent.data}\n");
+			//socket.send(messageEvent.data.toUpperCase());
+			var fact = factorial(messageEvent.data);
+			console.log("Schicke Faktor von " + messageEvent.data + " zurueck an Server: " + fact);
+			socket.send(fact.valueOf());
+		};
+		
+		
+		
+		socket.onclose = function(closeEvent){
+			if (closeEvent.wasClean){
+				console.log("Verbindung beendet, code = ${closeEvent.code}, Grund = ${closeEvent.reason}");
+			}
+			else{
+				console.log("Verbindung abgestuertzt.");
+			}
+		
+		}
+	  </script>
+   </body>
+</html>
