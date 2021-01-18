@@ -1,16 +1,24 @@
 import javax.swing.*;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.Base64;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
     private static boolean check = true;
     private static boolean checkRunning = false;
     private static ServerSocket ss2 = null;
-    private static final int port = 5000;
+    private static final int port = 80;
 
     static final ReentrantLock lock = new ReentrantLock();
 
@@ -103,6 +111,30 @@ public class Main {
                 /*System.out.println(ip);
                 ServerThread.listIP.add(ip);
                 ServerThread.listSocket.add(s);//*/
+
+                InputStream in = s.getInputStream();
+                OutputStream out = s.getOutputStream();
+                Scanner scan = new Scanner(in, "UTF-8");
+                //WebSocket Handshake
+
+                try {
+                    String data = scan.useDelimiter("\\r\\n\\r\\n").next();
+                    Matcher get = Pattern.compile("^GET").matcher(data);
+                    if (get.find()) {
+                        Matcher match = Pattern.compile("Sec-WebSocket-Key: (.*)").matcher(data);
+                        match.find();
+                        byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n"
+                                + "Connection: Upgrade\r\n"
+                                + "Upgrade: websocket\r\n"
+                                + "Sec-WebSocket-Accept: "
+                                + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("UTF-8")))
+                                + "\r\n\r\n").getBytes("UTF-8");
+                        out.write(response, 0, response.length);
+                    }
+                }
+                catch(NoSuchAlgorithmException nsae){
+                    nsae.printStackTrace();
+                }
                 Thread serverThread = new Thread (new ServerThread(s, ip));
                 serverThread.start();
 
