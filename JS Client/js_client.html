@@ -22,7 +22,10 @@
 		socket.onopen = function (){
 			console.log("Verbindung aufgebaut.\n");
 			//Sendet Server Nachricht
-			socket.send("Ping"); 
+			for (i = 0; i < 1; i++) { 
+			//socket.send("Ping\n"); 
+			socket.send("connect");
+			}
 		};
 		
 		//Log bei Fehler

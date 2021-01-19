@@ -1,15 +1,14 @@
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class ServerThread extends JFrame implements Runnable{
     private static BufferedReader is = null;
     private static PrintWriter os = null;
+    private static InputStream iss = null;
     static Socket s;
 
     private static boolean check;
@@ -92,15 +91,64 @@ public class ServerThread extends JFrame implements Runnable{
     private synchronized void receiveMessage(){
         try {
             is = new BufferedReader((new InputStreamReader(s.getInputStream())));
+            iss = s.getInputStream();
             os = new PrintWriter(s.getOutputStream());
         } catch (Exception e) {
             System.out.println("Error in server thread");
         }
-        String line;
+        String line = null;
         String[] bytes;
+        int length = 0;
+        int buffLength = 1024;
+        byte[] b = new byte[buffLength];
         try {
             while (check && !Thread.currentThread().isInterrupted()) {
-                line = is.readLine();
+                //line = is.readLine();
+
+                //Laenge der erhaltenen verschlüsselten Nachricht
+                length = iss.read(b);
+
+                //Dekodierung der WebSocket Nachricht
+                if(length != -1){
+                    byte rLength = 0;
+                    int rMaskIndex = 2;
+                    int rDataStart = 0;
+                    //Hier fehlt eventuell noch ein Check, ob b[0] etwas anderes als Text ist.
+                    byte data = b[1];
+                    byte op = (byte) 127;
+                    //Check, wo die Laenge geschrieben ist, wenn <=125 dann ist das die Laenge
+                    rLength = (byte) (data & op);
+                    //wenn 126, dann steht in den naechsten 16 bit die Laenge
+                    if(rLength==(byte)126) rMaskIndex=4;
+                    //wenn 127, dann steht in den naechsten 64 bit die Laenge
+                    if(rLength==(byte)127) rMaskIndex=10;
+
+                    //auf die Laenge folgt ein 4 bit langer mask key, der zum dekodieren benoetigt wird
+                    byte[] masks = new byte[4];
+
+                    int j=0;
+                    int i=0;
+                    for(i=rMaskIndex;i<(rMaskIndex+4);i++){
+                        masks[j] = b[i];
+                        j++;
+                    }
+
+                    //auf den masking key folgen die verschluesselten Daten
+                    rDataStart = rMaskIndex + 4;
+
+                    int messLen = length - rDataStart;
+
+                    byte[] message = new byte[messLen];
+
+                    //Entschluesslung der Daten
+                    for(i=rDataStart, j=0; i<length; i++, j++){
+                        message[j] = (byte) (b[i] ^ masks[j % 4]);
+                    }
+
+                    line = new String(message, StandardCharsets.UTF_8);
+                    b = new byte[buffLength];
+                }
+
                 if (line != null) {
                     bytes = line.split("/.../");
 
