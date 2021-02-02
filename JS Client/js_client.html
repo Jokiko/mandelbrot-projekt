@@ -5,6 +5,13 @@
    </head>
    <body>
       <script>
+		
+		//Variablen fuer Berechnung der Mandelbrotmenge
+		var width;
+		var height;
+		var anzClients;
+		var myNumber;
+	  
 		//Import der Faktorisierungsfunktion aus dem WebAssembly Modul
 		let factorial;
 		fetch("factorial.wasm")
@@ -24,7 +31,7 @@
 			//Sendet Server Nachricht
 			for (i = 0; i < 1; i++) { 
 			//socket.send("Ping\n"); 
-			socket.send("connect");
+			socket.send("connect/.../abc/");
 			}
 		};
 		
@@ -38,9 +45,27 @@
 			console.log("Erhalte Nachricht von Server: " + messageEvent.data);
 			//console.log("${messageEvent.data}\n");
 			//socket.send(messageEvent.data.toUpperCase());
-			var fact = factorial(messageEvent.data);
-			console.log("Schicke Faktor von " + messageEvent.data + " zurueck an Server: " + fact);
-			socket.send(fact.valueOf());
+			var str = messageEvent.data;
+			var res = str.split("/.../");
+			//Uebermittlung der Gesamtanzahl an Clients
+			if(res[0] === "anzClients"){
+				anzClients = res[1];
+				console.log("Anzahl an Clients: " + anzClients);
+			}
+			//Uebermittlung der Client-Nummer
+			if(res[0] === "yourNumber"){
+				myNumber = res[1];
+				console.log("Ich bin Client Nr. " + myNumber);
+			}
+			//Uebermittlung der Groesse des zu berechnenden Anteils
+			if(res[0] === "size"){
+				width = res[1];
+				height = res[2];
+				console.log("Erhalte Groesse: " + width + "x" + height);
+				var fact = factorial(width);
+				console.log("Schicke Faktor von " + width + " zurueck an Server: " + fact);
+				socket.send(fact.valueOf());
+			}
 		};
 		
 		
