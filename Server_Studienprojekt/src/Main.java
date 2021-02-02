@@ -86,7 +86,7 @@ public class Main {
         try{
             check = true;
             ss2 = new ServerSocket();
-            ss2.bind(new InetSocketAddress("136.199.4.196", port));
+            ss2.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
             System.out.println(ss2.getInetAddress().getHostAddress());
             serverRunning();
         }catch(IOException ioe){
