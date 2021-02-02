@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="4" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:weightSum="1" >
+        <TextView
+            android:id="@+id/txtDeviceName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Device Name"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/editDeviceName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:ems="10"
+            android:hint="Name"
+            android:inputType="textPersonName"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:weightSum="2" >
+        <TextView
+            android:id="@+id/txtViewIP"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Server IP-Address"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:weightSum="1" >
+            <EditText
+                android:id="@+id/editIP_1"
+                android:layout_width="55dp"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="127"
+                android:inputType="datetime"
+                android:text="192"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:autofillHints="" />
+            <TextView
+                android:id="@+id/txt_Point_1"
+                android:layout_width="10dp"
+                android:layout_height="50dp"
+                android:text="."
+                android:textAlignment="center"
+                android:textSize="24sp"/>
+            <EditText
+                android:id="@+id/editIP_2"
+                android:layout_width="55dp"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="0"
+                android:inputType="datetime"
+                android:text="168"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:autofillHints="" />
+            <TextView
+                android:id="@+id/txt_Point_2"
+                android:layout_width="10dp"
+                android:layout_height="50dp"
+                android:text="."
+                android:textAlignment="center"
+                android:textSize="24sp" />
+            <EditText
+                android:id="@+id/editIP_3"
+                android:layout_width="55dp"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="0"
+                android:inputType="datetime"
+                android:text="178"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:autofillHints="" />
+            <TextView
+                android:id="@+id/txt_Point_3"
+                android:layout_width="10dp"
+                android:layout_height="50dp"
+                android:text="."
+                android:textAlignment="center"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toTopOf="@+id/txtPort"
+                app:layout_constraintStart_toEndOf="@+id/editIP_3" />
+            <EditText
+                android:id="@+id/editIP_4"
+                android:layout_width="55dp"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="1"
+                android:inputType="datetime"
+                android:text="45"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:autofillHints="" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:weightSum="2" >
+        <TextView
+            android:id="@+id/txtPort"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginBottom="12dp"
+            android:layout_weight="1"
+            android:text="Server Port"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/editPort"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:ems="10"
+            android:hint="5000"
+            android:inputType="datetime"
+            android:text="5000"
+            android:textAlignment="center"
+            android:textSize="22sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:weightSum="1" >
+
+        <Button
+            android:id="@+id/btnConnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:backgroundTint="#B5A3A3"
+            android:text="Connect"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editPort"
+            app:layout_constraintVertical_bias="0.213" />
+
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:backgroundTint="#B5A3A3"
+            android:text="Delete"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnConnect"
+            app:layout_constraintVertical_bias="0.288" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="1" >
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="1" >
+    </LinearLayout>
+</LinearLayout>
