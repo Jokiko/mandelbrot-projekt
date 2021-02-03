@@ -1,9 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 public class UI extends JFrame{
@@ -110,6 +107,7 @@ public class UI extends JFrame{
             }else{
                 ServerThread.sendMessageText("rectangle/.../" + xMove + "/.../" + yMove + "/.../" + factor);
             }//*/
+            contentPane.requestFocus();
         //}
     }
 
@@ -128,25 +126,7 @@ public class UI extends JFrame{
             plotValRe();
 
             //ServerThread.sendMessageText("zoomOut/.../" + factor);
-        //}
-    }
-
-    /**
-     * Zoom()
-     * @param event AWTEvent
-     */
-    private void Zoom(AWTEvent event){
-        //if(ServerThread.runningClients > 0) {
-            if (event instanceof KeyEvent) {
-                KeyEvent ke = (KeyEvent) event;
-                if (btnZoomIn.isVisible() && ke.getKeyCode() == 521) {
-                    zoomIn(0.05);
-                } else {
-                    if (btnZoomOut.isVisible() && ke.getKeyCode() == 45) {
-                        zoomOut(0.05);
-                    }
-                }
-            }
+            contentPane.requestFocus();
         //}
     }
 
@@ -157,85 +137,35 @@ public class UI extends JFrame{
      */
     private void actionPerformedButton(ActionEvent ae){
         //if(ServerThread.runningClients > 0) {
-        String event = ae.getActionCommand();
-
-        switch (event) {
-            case "Up":
-                yMove -= 50;
-                //ServerThread.sendMessageText("Up/.../50");
-
-                plotValRe();
-                break;
-            case "Down":
-                yMove += 50;
-                //ServerThread.sendMessageText("Down/.../50");
-
-                plotValRe();
-                break;
-            case "Left":
-                xMove -= 50;
-                //ServerThread.sendMessageText("Left/.../50");
-
-                plotValRe();
-                break;
-            case "Right":
-                xMove += 50;
-                //ServerThread.sendMessageText("Right/.../50");
-
-                plotValRe();
-                break;
-            default:
-                break;
-        }
-        //}
-    }
-
-    /**
-     * actionPerformed()
-     * Pfeiltasten and Escape (restart)
-     * */
-    private void actionPerformed(AWTEvent event){
-        //if(ServerThread.runningClients > 0) {
-        if (event instanceof KeyEvent) {
-            int eventCode = ((KeyEvent) event).getKeyCode();
-
-            switch (eventCode) {
-                //move up
-                case 38:
-                    yMove -= 25;
-                    //ServerThread.sendMessageText("Up/.../25");
+            switch (ae.getActionCommand()) {
+                case "Up":
+                    yMove -= 50;
+                    //ServerThread.sendMessageText("Up/.../50");
 
                     plotValRe();
                     break;
-                //move down
-                case 40:
-                    yMove += 25;
-                    //ServerThread.sendMessageText("Down/.../25");
+                case "Down":
+                    yMove += 50;
+                    //ServerThread.sendMessageText("Down/.../50");
 
                     plotValRe();
                     break;
-                //move left
-                case 37:
-                    xMove -= 25;
-                    //ServerThread.sendMessageText("Left/.../25");
+                case "Left":
+                    xMove -= 50;
+                    //ServerThread.sendMessageText("Left/.../50");
 
                     plotValRe();
                     break;
-                //move right
-                case 39:
-                    xMove += 25;
-                    //ServerThread.sendMessageText("Right/.../25");
+                case "Right":
+                    xMove += 50;
+                    //ServerThread.sendMessageText("Right/.../50");
 
                     plotValRe();
-                    break;
-                //escape
-                case 27:
-                    restart();
                     break;
                 default:
                     break;
             }
-        }
+            contentPane.requestFocus();
         //}
     }
 
@@ -251,8 +181,8 @@ public class UI extends JFrame{
         }
 
         @Override
-        public void paint (Graphics g){
-            super.paint(g);
+        public void paintComponent (Graphics g){
+            super.paintComponent(g);
             g.drawImage(I, 0, 0, this);
         }
     }
@@ -330,6 +260,55 @@ public class UI extends JFrame{
         contentPane.setBackground(UIManager.getColor("blue"));
         setContentPane(contentPane);
         contentPane.setLayout(null);
+        contentPane.setFocusable(true);
+
+        contentPane.addKeyListener(new KeyAdapter() {
+            /**
+             * keyReleased()
+             * wenn Keyboardtaste losgelassen wird entsprechendes ausgefuehrt
+             * @param e KeyEvent
+             */
+            @Override
+            public void keyReleased(KeyEvent e) {
+                switch(e.getKeyCode()){
+                    case KeyEvent.VK_MINUS:
+                        zoomOut(0.2);
+                        break;
+                    case KeyEvent.VK_PLUS:
+                        zoomIn(0.2);
+                        break;
+                    case KeyEvent.VK_LEFT:
+                        xMove -= 50;
+                        //ServerThread.sendMessageText("Left/.../25");
+
+                        plotValRe();
+                        break;
+                    case KeyEvent.VK_RIGHT:
+                        xMove += 50;
+                        //ServerThread.sendMessageText("Right/.../25");
+
+                        plotValRe();
+                        break;
+                    case KeyEvent.VK_UP:
+                        yMove -= 50;
+                        //ServerThread.sendMessageText("Up/.../25");
+
+                        plotValRe();
+                        break;
+                    case KeyEvent.VK_DOWN:
+                        yMove += 50;
+                        //ServerThread.sendMessageText("Down/.../25");
+
+                        plotValRe();
+                        break;
+                    case KeyEvent.VK_ESCAPE:
+                        restart();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
 
 //imgPicture
         imgPicture = new imgPanel();
@@ -489,13 +468,6 @@ public class UI extends JFrame{
         btnZoomOut.setFont(new Font("Times New Roman", Font.BOLD, (int) ((height / 25.6) / 1.8)));
         btnZoomOut.setEnabled(false);
         contentPane.add(btnZoomOut);
-
-//ZoomIn mit Plustaste und ZoomOut mit Minustaste
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        tk.addAWTEventListener(this::Zoom, AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
-
-//Bewegung mit Pfeiltasten
-        tk.addAWTEventListener(this::actionPerformed, AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
 
 //btnLeft
         btnLeft = new JButton("Left");

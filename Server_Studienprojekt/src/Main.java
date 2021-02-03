@@ -20,6 +20,12 @@ public class Main {
 
     static String clientType;
 
+    static String line;
+    static String data;
+    static BufferedReader in;
+    static OutputStream out;
+    static Scanner scan;
+
     /**
      * sendCheck()
      */
@@ -59,20 +65,25 @@ public class Main {
      * @param socket Socket
      */
     private static void getClientType(Socket socket){
-        String line;
+        line = "";
         String[] bytes;
         try {
-            line = new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();
-            System.out.println(line);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = socket.getOutputStream();
+            scan = new Scanner(in);
+            line = scan.next();
+            System.out.println("line: " + line);
             bytes = line.split("/.../");
             if(bytes[0].equals("type")){
                 clientType = bytes[1];
-                System.out.println(clientType);
                 ServerThread.sendMessage(new PrintWriter(socket.getOutputStream()), "type");
             }else{
-                System.out.println("Wrong message type");
-                ServerThread.sendMessage(new PrintWriter(socket.getOutputStream()), "disconnect/.../wrong_message_type");
+                clientType = "WebSocket";
+                System.out.println("data: ");
+                data = line + scan.useDelimiter("\\r\\n\\r\\n").next();
+                System.out.println(data);
             }
+            System.out.println("ClientType: " + clientType);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,9 +96,8 @@ public class Main {
     private static void startServer(){
         try{
             check = true;
-            ss2 = new ServerSocket();
-            ss2.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
-            System.out.println(ss2.getInetAddress().getHostAddress());
+            ss2 = new ServerSocket(5000);
+            //ss2.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
             serverRunning();
         }catch(IOException ioe){
             check = false;
@@ -110,7 +120,7 @@ public class Main {
      * serverRunning()
      */
     private static void serverRunning(){
-        System.out.println("Server started (Port: " + port + ")");
+        System.out.println("Server started (IP: " + ss2.getInetAddress().getHostAddress() + "; Port: " + port + ")");
 
         //start UI
         new UI().setVisible(true);
@@ -122,30 +132,32 @@ public class Main {
                 getClientType(s);
 
                 if(clientType != null) {
-                    if (clientType.equals("WebSocket")) {
-                        InputStream in = s.getInputStream();
-                        OutputStream out = s.getOutputStream();
-                        Scanner scan = new Scanner(in, StandardCharsets.UTF_8);
+                    if(clientType.equals("WebSocket")) {
+                        System.out.println("vorher");
                         //WebSocket Handshake
                         try {
-                            String data = scan.useDelimiter("\\r\\n\\r\\n").next();
+                            System.out.println("vor get");
                             Matcher get = Pattern.compile("^GET").matcher(data);
-                            if (get.find()) {
+                            boolean find = get.find();
+                            if (find) {
+                                System.out.println("get.find()");
                                 Matcher match = Pattern.compile("Sec-WebSocket-Key: (.*)").matcher(data);
-                                match.find();
-                                byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n"
-                                        + "Connection: Upgrade\r\n"
-                                        + "Upgrade: websocket\r\n"
-                                        + "Sec-WebSocket-Accept: "
-                                        + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes(StandardCharsets.UTF_8)))
-                                        + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
-                                out.write(response, 0, response.length);
+                                if(match.find()) {
+                                    System.out.println("match.find()");
+                                    byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n"
+                                            + "Connection: Upgrade\r\n"
+                                            + "Upgrade: websocket\r\n"
+                                            + "Sec-WebSocket-Accept: "
+                                            + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes(StandardCharsets.UTF_8)))
+                                            + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
+                                    out.write(response, 0, response.length);
+                                }
                             }
                         } catch (NoSuchAlgorithmException nsae) {
+                            System.out.println("error");
                             nsae.printStackTrace();
                         }
                     }
-
                     String ip = s.getInetAddress().getHostAddress();
                     Thread serverThread = new Thread(new ServerThread(s, ip));
                     serverThread.start();
@@ -156,7 +168,7 @@ public class Main {
                     }//*/
                 }else{
                     System.out.println("clientType == null");
-                }
+                }//*/
             }catch(IOException ioe) {
                 check = false;
                 ioe.printStackTrace();

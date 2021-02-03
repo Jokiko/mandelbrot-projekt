@@ -23,8 +23,8 @@ public class ServerThread extends JFrame implements Runnable{
     public static ArrayList<Socket> listRunning = new ArrayList<>();
     public static ArrayList<Socket> listUnchecked = new ArrayList<>();
     public static ArrayList<String> listIP = new ArrayList<>();
-    public static ArrayList<String> listName = new ArrayList<>();
     public static ArrayList<String> listTypes = new ArrayList<>();
+    public static ArrayList<String> listName = new ArrayList<>();
 
     int colorItr = 20;
     static int i = 0;
@@ -151,7 +151,7 @@ public class ServerThread extends JFrame implements Runnable{
                     }
                 }else{
                     line = is.readLine();
-                }
+                }//*/
 
                 if (line != null) {
                     bytes = line.split("/.../");
@@ -180,7 +180,7 @@ public class ServerThread extends JFrame implements Runnable{
                         }
                         sendMessage(os, "yourNumber/.../" + yourNumber);
 
-                        if(listName.contains(bytes[1])){
+                        /*if(listName.contains(bytes[1])){
                             i++;
                             listName.add(bytes[1] + "_" + i);
                         }else {
@@ -188,7 +188,7 @@ public class ServerThread extends JFrame implements Runnable{
                         }
                         for (String name : listName) {
                             System.out.println("Name: " + name);
-                        }
+                        }//*/
                     }
 
                     if (listTypes.contains(bytes[0])){
@@ -268,12 +268,12 @@ public class ServerThread extends JFrame implements Runnable{
         System.out.println("listSocket.size(): " + listSocket.size());
         int z = listSocket.indexOf(so);
         if(z != -1) {
-            System.out.println("listSocket.remove: " + listSocket.get(z));
-            listSocket.remove(z);
+            System.out.println("listSocket.remove: " + so);
+            listSocket.remove(so);
             System.out.println("listIP.remove: " + so.getInetAddress().getHostAddress());
             listIP.remove(so.getInetAddress().getHostAddress());
-            System.out.println("listName.remove: " + listName.get(z));
-            listName.remove(z);
+            /*System.out.println("listName.remove: " + listName.get(z));
+            listName.remove(z);//*/
         }
         if(listRunning.contains(so)){
             System.out.println("listRunning.remove: " + so);
