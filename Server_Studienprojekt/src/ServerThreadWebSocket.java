@@ -2,10 +2,12 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
-public class ServerThread extends JFrame implements Runnable{
-    private static BufferedReader br = null;
+public class ServerThreadWebSocket extends JFrame implements Runnable{
     private static PrintWriter os = null;
+    private static InputStream is = null;
     private static Socket socket;
 
     private static boolean check;
@@ -19,7 +21,7 @@ public class ServerThread extends JFrame implements Runnable{
      * ServerThread()
      * @param s Socket
      */
-    ServerThread(Socket s) {
+    ServerThreadWebSocket(Socket s) {
         socket = s;
         check = true;
     }
@@ -30,12 +32,12 @@ public class ServerThread extends JFrame implements Runnable{
      * @param text String
      */
     public static void sendMessageText(String text){
-        System.out.println("text (ServerThread): " + text);
+        System.out.println("text (ServerThreadWebSocket): " + text);
         try {
             if (text.equals("disconnect") || text.equals("close")) {
-                for (Socket socket : Server.listSocket) {
-                    MethodsServerThread.sendMessage(new PrintWriter(socket.getOutputStream()), text);
-                }
+                    for (Socket socket : Server.listSocket) {
+                        MethodsServerThread.sendMessage(new PrintWriter(socket.getOutputStream()), text);
+                    }
             } else {
                 for(Socket socket : Server.listRunning) {
                     MethodsServerThread.sendMessage(new PrintWriter(socket.getOutputStream()), text);
@@ -52,21 +54,68 @@ public class ServerThread extends JFrame implements Runnable{
      */
     private synchronized void receiveMessage(){
         try {
-            br = new BufferedReader((new InputStreamReader(socket.getInputStream())));
+            is = socket.getInputStream();
             os = new PrintWriter(socket.getOutputStream());
         } catch (Exception e) {
-            System.out.println("Error in serverThread");
+            System.out.println("Error in serverThreadWebSocket");
         }
-        String line;
+        String line = null;
         String[] stringBytes;
+        int length;
+        int buffLength = 1024;
+        byte[] b = new byte[buffLength];
         try {
             while (check && !Thread.currentThread().isInterrupted()) {
-                line = br.readLine(); //blockt
+                System.out.println(Thread.currentThread().getName());
+                //Laenge der erhaltenen verschlüsselten Nachricht
+                length = is.read(b); //blockt
+
+                //Dekodierung der WebSocket Nachricht
+                if (length != -1) {
+                    byte rLength;
+                    int rMaskIndex = 2;
+                    int rDataStart;
+                    //Hier fehlt eventuell noch ein Check, ob b[0] etwas anderes als Text ist.
+                    byte data = b[1];
+                    byte op = (byte) 127;
+                    //Check, wo die Laenge geschrieben ist, wenn <=125 dann ist das die Laenge
+                    rLength = (byte) (data & op);
+                    //wenn 126, dann steht in den naechsten 16 bit die Laenge
+                    if (rLength == (byte) 126) rMaskIndex = 4;
+                    //wenn 127, dann steht in den naechsten 64 bit die Laenge
+                    if (rLength == (byte) 127) rMaskIndex = 10;
+
+                    //auf die Laenge folgt ein 4 bit langer mask key, der zum dekodieren benoetigt wird
+                    byte[] masks = new byte[4];
+
+                    int j = 0;
+                    int i;
+                    for (i = rMaskIndex; i < (rMaskIndex + 4); i++) {
+                        masks[j] = b[i];
+                        j++;
+                    }
+
+                    //auf den masking key folgen die verschluesselten Daten
+                    rDataStart = rMaskIndex + 4;
+
+                    int messLen = length - rDataStart;
+
+                    byte[] message = new byte[messLen];
+
+                    //Entschluesslung der Daten
+                    for (i = rDataStart, j = 0; i < length; i++, j++) {
+                        message[j] = (byte) (b[i] ^ masks[j % 4]);
+                    }
+
+                    line = new String(message, StandardCharsets.UTF_8);
+                    b = new byte[buffLength];
+                    System.out.println("b_ende: " + Thread.currentThread().getName() + "; " + Arrays.toString(b));
+                }
 
                 if (line != null) {
                     stringBytes = line.split("/.../");
 
-                    System.out.println("in if: " + Thread.currentThread().getName() + "; " + line);
+                    System.out.println("in if : " + line);
 
                     if (stringBytes[0].equals("connect")) {
                         MethodsServerThread.sendMessage(os, "connect response from the server");
@@ -115,7 +164,6 @@ public class ServerThread extends JFrame implements Runnable{
                         runningClients++;
                         Server.listRunning.add(socket);
                         MethodsServerThread.sendMessage(os, "size/.../" + UI.imgPicture.getWidth() + "/.../" + UI.imgPicture.getHeight());
-                        MethodsServerThread.sendMessage(os, "anzRunning/.../" + Server.listRunning.size());
                         System.out.println("runningClients: " + runningClients);
                     }
 
@@ -191,7 +239,13 @@ public class ServerThread extends JFrame implements Runnable{
             System.out.println("Server.listRunning.remove: " + so);
             Server.listRunning.remove(so);
         }else{
-            System.out.println("Server.listRunning.remove: no socket removed");
+            System.out.println("listRunning.remove: no socket removed");
+        }
+        if(Server.listWebSocket.contains(so)){
+            System.out.println("Server.listWebSocket.remove: " + so);
+            Server.listWebSocket.remove(so);
+        }else{
+            System.out.println("Server.listWebSocket.remove: no socket removed");
         }
 
         Server.lock.lock();
@@ -217,8 +271,8 @@ public class ServerThread extends JFrame implements Runnable{
             //UI.btnEnd.setEnabled(false);
             i = 0;
             try {
-                br.close();
-                System.out.println("BufferedReader closed: " + br.toString());
+                is.close();
+                System.out.println("InputStream closed: " + is.toString());
                 os.close();
                 System.out.println("OutputStream closed: " + os.toString());
                 socket.close();
