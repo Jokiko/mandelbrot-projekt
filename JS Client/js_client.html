@@ -11,6 +11,7 @@
 		var height;
 		var anzClients;
 		var myNumber;
+		var iterations;
 	  
 		//Import der Faktorisierungsfunktion aus dem WebAssembly Modul
 		let factorial;
@@ -23,7 +24,8 @@
 		});
 	  
 		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
-		var socket = new WebSocket('ws://localhost:80');
+		var socket = new WebSocket('ws://localhost:5000');
+		//var socket = new WebSocket('ws://136.199.4.88:5000');
 	  
 		//Funktion bei Verbindungsaufbau
 		socket.onopen = function (){
@@ -31,7 +33,8 @@
 			//Sendet Server Nachricht
 			for (i = 0; i < 1; i++) { 
 			//socket.send("Ping\n"); 
-			socket.send("connect/.../abc/");
+			socket.send("type/.../WebSocket");
+			socket.send("connect/.../abc");
 			}
 		};
 		
@@ -48,7 +51,7 @@
 			var str = messageEvent.data;
 			var res = str.split("/.../");
 			//Uebermittlung der Gesamtanzahl an Clients
-			if(res[0] === "anzClients"){
+			if(res[0] === "anzRunning"){
 				anzClients = res[1];
 				console.log("Anzahl an Clients: " + anzClients);
 			}
@@ -57,18 +60,35 @@
 				myNumber = res[1];
 				console.log("Ich bin Client Nr. " + myNumber);
 			}
-			//Uebermittlung der Groesse des zu berechnenden Anteils
+			//Uebermittlung der Iterationsanzahl
+			if(res[0] === "iterations"){
+				iterations = res[1];
+				console.log("Anzahl der Iterationen: " + iterations);
+			}
+			//Uebermittlung der Groesse des zu berechnenden Anteils, damit kann Berechnung beginnen
 			if(res[0] === "size"){
 				width = res[1];
 				height = res[2];
 				console.log("Erhalte Groesse: " + width + "x" + height);
+				//Timing vorher
+				var t0 = performance.now();
 				var fact = factorial(width);
+				//Berechnung Mandelbrotmenge
+				for(var y = 0; y < height; y++){
+					for(var x = 0; x < width; x++){
+						//Rueckgabe itr Wert
+						// TO-DO: Mandelbrotberechnung
+						var erg = 0;
+						socket.send("plot/.../"+x+"/.../"+y+"/.../"+erg);
+					}
+				}
+				//Timing nachher
+				var t1 = performance.now();
 				console.log("Schicke Faktor von " + width + " zurueck an Server: " + fact);
+				console.log("Berechnung dauerte " + (t1 - t0) + " Millisekunden.");
 				socket.send(fact.valueOf());
 			}
 		};
-		
-		
 		
 		socket.onclose = function(closeEvent){
 			if (closeEvent.wasClean){
