@@ -1,0 +1,6 @@
+﻿################################################################################
+# Diese .gitignore-Datei wurde von Microsoft(R) Visual Studio automatisch erstellt.
+################################################################################
+
+/.vs/mandelbrot-projekt/v16/Browse.VC.db
+/Cuda/Cuda/.vs/Cuda/v16/Browse.VC.opendb
