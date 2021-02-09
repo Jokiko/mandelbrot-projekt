@@ -7,7 +7,7 @@ public class MethodsUI {
     /**
      * fuer Mandelbrotmengenberechnung
      */
-    static BufferedImage I;
+    static BufferedImage I = new BufferedImage(UI.imgPicture.getWidth(), UI.imgPicture.getHeight(), BufferedImage.TYPE_INT_RGB);;
     static int xMove, yMove = 0;
     private static double zoomX = 200;
     private static double zoomY = 200;
@@ -34,7 +34,7 @@ public class MethodsUI {
      * (am Ende loeschen/auskommentieren)
      */
     public static void plotValRe(){
-        plotPoints();
+        plotPoints();    
         UI.imgPicture.validate();
         UI.imgPicture.repaint();
     }
@@ -45,29 +45,37 @@ public class MethodsUI {
      * (am Ende loeschen/auskommentieren)
      */
     private static void plotPoints(){
-        I = new BufferedImage(UI.imgPicture.getWidth(), UI.imgPicture.getHeight(), BufferedImage.TYPE_INT_RGB);
+    	
+        double zy;
+        double zx;
+        double cx;
+        double cy;
+        double temp;
+        int itr;
+        int colorItr = 20;
+        Graphics2D g2;
+        
         for (int y = 0; y < I.getHeight(); y++) {
             for (int x = 0; x < I.getWidth(); x++) {
-                double zy;
-                double zx = zy = 0;
-                double cx = (x - (I.getWidth() / 2.0) + xMove) / zoomX;
-                double cy = (y - (I.getHeight() / 2.0) + yMove) / zoomY;
+                zx = zy = 0;
+                cx = (x - (I.getWidth() / 2.0) + xMove) / zoomX;
+                cy = (y - (I.getHeight() / 2.0) + yMove) / zoomY;
                 // jeweils Division mit 2, damit in der Mitte des Bildschirms
-                int itr = 50;
+                itr = 50;
                 while (zx * zx + zy * zy < 4 && itr > 0) {
-                    double temp = zx * zx - zy * zy + cx;
+                    temp = zx * zx - zy * zy + cx;
                     zy = 2 * zx * zy + cy;
                     zx = temp;
                     itr--;
                 }
-                int colorItr = 20;
+                
                 I.setRGB(x, y, itr | (itr << colorItr));
             }
         }
         // zeichnet Kreuz ueber das Bild (Testzwecke)
         middleImageX = I.getWidth() / 2;
         middleImageY = I.getHeight() / 2;
-        Graphics2D g2 = (Graphics2D) I.getGraphics();
+        g2 = (Graphics2D) I.getGraphics();
         g2.setColor(Color.WHITE);
         g2.drawLine(middleImageX, 0, middleImageX, I.getHeight());
         g2.drawLine(0, middleImageY, I.getWidth(), middleImageY);
