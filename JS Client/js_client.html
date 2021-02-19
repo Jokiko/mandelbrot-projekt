@@ -11,7 +11,7 @@
 		var height;
 		var anzClients;
 		var myNumber;
-		var iterations;
+		var iterations = 50;
 	  
 		//Import der Mandelbrotfunktion aus dem WebAssembly Modul
 		let mandelbrot;
@@ -59,6 +59,8 @@
 			if(res[0] === "yourNumber"){
 				myNumber = res[1];
 				console.log("Ich bin Client Nr. " + myNumber);
+				//Aufforderung, die Masse zu uebergeben
+				socket.send("start/.../"+myNumber);
 			}
 			//Uebermittlung der Iterationsanzahl
 			if(res[0] === "iterations"){
@@ -77,7 +79,7 @@
 					for(var x = 0; x < width; x++){
 						//Wert der Mandelbrotmenge durch importiertes WebAssembly Modul
 						var erg = mandelbrot(x, y, width, height, iterations);
-						console.log("x: "+x+", y: "+y+", itr: "+erg);
+						//console.log("x: "+x+", y: "+y+", itr: "+erg);
 						socket.send("plot/.../"+x+"/.../"+y+"/.../"+erg);
 					}
 				}

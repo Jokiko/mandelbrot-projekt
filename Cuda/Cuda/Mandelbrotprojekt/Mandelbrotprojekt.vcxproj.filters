@@ -15,11 +15,9 @@
     <ClInclude Include="Client.h">
       <Filter>Header</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="kernel.cu">
-      <Filter>Kernel</Filter>
-    </CudaCompile>
+    <ClInclude Include="CudaCalculator.h">
+      <Filter>Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -28,5 +26,10 @@
     <ClCompile Include="Main.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="CudaCalculator.cu">
+      <Filter>Kernel</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

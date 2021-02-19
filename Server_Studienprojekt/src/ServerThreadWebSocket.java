@@ -8,7 +8,9 @@ import java.util.Arrays;
 public class ServerThreadWebSocket extends JFrame implements Runnable{
     private static PrintWriter os = null;
     private static InputStream is = null;
+    private static OutputStream out = null;
     private static Socket socket;
+
 
     private static boolean check;
     private static int anzClients;
@@ -56,6 +58,7 @@ public class ServerThreadWebSocket extends JFrame implements Runnable{
         try {
             is = socket.getInputStream();
             os = new PrintWriter(socket.getOutputStream());
+            out = socket.getOutputStream();
         } catch (Exception e) {
             System.out.println("Error in serverThreadWebSocket");
         }
@@ -118,7 +121,7 @@ public class ServerThreadWebSocket extends JFrame implements Runnable{
                     System.out.println("in if : " + line);
 
                     if (stringBytes[0].equals("connect")) {
-                        MethodsServerThread.sendMessage(os, "connect response from the server");
+                        MethodsServerThread.sendWebSocketMessage(out, "connect response from the server");
                         anzClients = Server.listSocket.size();
                         yourNumber = Server.listSocket.size();
                         UI.lblAnzClients.setText("anzClients: " + anzClients);
@@ -135,9 +138,9 @@ public class ServerThreadWebSocket extends JFrame implements Runnable{
                         }
                         for(Socket socket : Server.listSocket) {
                             PrintWriter os = new PrintWriter(socket.getOutputStream());
-                            MethodsServerThread.sendMessage(os, "anzClients/.../" + anzClients);
+                            MethodsServerThread.sendWebSocketMessage(out, "anzClients/.../" + anzClients);
                         }
-                        MethodsServerThread.sendMessage(os, "yourNumber/.../" + yourNumber);
+                        MethodsServerThread.sendWebSocketMessage(out, "yourNumber/.../" + yourNumber);
 
                         /*if(listName.contains(stringBytes[1])){
                             i++;
@@ -163,7 +166,7 @@ public class ServerThreadWebSocket extends JFrame implements Runnable{
                     if (stringBytes[0].equals("start")){
                         runningClients++;
                         Server.listRunning.add(socket);
-                        MethodsServerThread.sendMessage(os, "size/.../" + UI.imgPicture.getWidth() + "/.../" + UI.imgPicture.getHeight());
+                        MethodsServerThread.sendWebSocketMessage(out, "size/.../" + UI.imgPicture.getWidth() + "/.../" + UI.imgPicture.getHeight());
                         System.out.println("runningClients: " + runningClients);
                     }
 
@@ -173,13 +176,13 @@ public class ServerThreadWebSocket extends JFrame implements Runnable{
                         }//*/
                         runningClients--;
                         Server.listRunning.remove(socket);
-                        MethodsServerThread.sendMessage(os, "pause");
+                        MethodsServerThread.sendWebSocketMessage(out, "pause");
                     }
 
                     if (stringBytes[0].equals("resume")){
                         runningClients++;
                         Server.listRunning.add(socket);
-                        MethodsServerThread.sendMessage(os, "resume");
+                        MethodsServerThread.sendWebSocketMessage(out, "resume");
                         /*for(Socket socket : Server.listRunning){
                             sendMessage(new PrintWriter(socket.getOutputStream()), "resumeChange");
                         }//*/
