@@ -40,6 +40,8 @@ public class KeyboardListener implements KeyListener {
 		default:
 			break;
 		}
+		
+		mandelbrotPanel.requestFocus();
 	}
 
 	@Override
@@ -70,6 +72,8 @@ public class KeyboardListener implements KeyListener {
 		default:
 			break;
 		}
+		
+		mandelbrotPanel.requestFocus();
 	}
 
 	@Override

@@ -40,5 +40,7 @@ public class ButtonListener implements ActionListener {
 		default:
 			break;
 		}
+		
+		mandelbrotPanel.requestFocus();
 	}
 }
