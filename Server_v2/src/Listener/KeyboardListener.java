@@ -1,47 +1,43 @@
-package Listener;
+package src.Listener;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import Panels.MandelbrotPanel;
+import src.Server.Server;
 
 public class KeyboardListener implements KeyListener {
 
-	private MandelbrotPanel mandelbrotPanel;
+	private Server server;
 
-	public KeyboardListener(MandelbrotPanel mandelbrotPanel) {
-		this.mandelbrotPanel = mandelbrotPanel;
+	public KeyboardListener(Server server) {
+		this.server = server;
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		switch (e.getKeyCode()) {	
+		switch (e.getKeyCode()) {
 		case KeyEvent.VK_MINUS:
-			mandelbrotPanel.zoomOut(0.2);
+			server.zoomOut(0.2);
 			break;
 		case KeyEvent.VK_PLUS:
-			mandelbrotPanel.zoomIn(0.2);
+			server.zoomIn(0.2);
 			break;
 		case KeyEvent.VK_LEFT:
-			mandelbrotPanel.moveX(-10);
+			server.moveX(-10);
 			break;
 		case KeyEvent.VK_RIGHT:
-			mandelbrotPanel.moveX(10);
+			server.moveX(10);
 			break;
 		case KeyEvent.VK_UP:
-			mandelbrotPanel.moveY(-10);
+			server.moveY(-10);
 			break;
 		case KeyEvent.VK_DOWN:
-			mandelbrotPanel.moveY(10);
-			break;
-		case KeyEvent.VK_ESCAPE:
-			mandelbrotPanel.restart();
+			server.moveY(10);
 			break;
 		default:
 			break;
 		}
-		
-		mandelbrotPanel.requestFocus();
+
 	}
 
 	@Override
@@ -49,31 +45,30 @@ public class KeyboardListener implements KeyListener {
 
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_MINUS:
-			mandelbrotPanel.zoomOut(0.05);
+			server.zoomOut(0.05);
 			break;
 		case KeyEvent.VK_PLUS:
-			mandelbrotPanel.zoomIn(0.05);
+			server.zoomIn(0.05);
 			break;
 		case KeyEvent.VK_LEFT:
-			mandelbrotPanel.moveX(-2);
+			server.moveX(-2);
 			break;
 		case KeyEvent.VK_RIGHT:
-			mandelbrotPanel.moveX(2);
+			server.moveX(2);
 			break;
 		case KeyEvent.VK_UP:
-			mandelbrotPanel.moveY(-2);
+			server.moveY(-2);
 			break;
 		case KeyEvent.VK_DOWN:
-			mandelbrotPanel.moveY(2);
+			server.moveY(2);
 			break;
 		case KeyEvent.VK_ESCAPE:
-			mandelbrotPanel.restart();
+			server.defaultImage();
 			break;
 		default:
 			break;
 		}
-		
-		mandelbrotPanel.requestFocus();
+
 	}
 
 	@Override

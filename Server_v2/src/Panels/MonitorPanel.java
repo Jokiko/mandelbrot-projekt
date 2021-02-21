@@ -1,7 +1,8 @@
-package Panels;
+package src.Panels;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -56,4 +57,5 @@ public class MonitorPanel extends JPanel {
 	public void setPackagesPerSecond(int number) {
 		packages_per_second.setText(String.format("Packages: %d/s", number));
 	}
+	
 }

@@ -1,15 +1,17 @@
-package Listener;
+package src.Listener;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import Panels.MandelbrotPanel;
+import src.Mandelbrot.TaskBuilder;
+import src.Panels.MandelbrotPanel;
+import src.Server.Server;
 
 public class MandelbrotMouseListener extends MouseAdapter {
 
+	private Server server;
 	private MandelbrotPanel mandelbrotPanel;
-
 	private boolean canceled;
 
 	private int mWidth;
@@ -27,7 +29,8 @@ public class MandelbrotMouseListener extends MouseAdapter {
 	private int widthRect;
 	private int heightRect;
 
-	public MandelbrotMouseListener(MandelbrotPanel mandelbrotPanel) {
+	public MandelbrotMouseListener(Server server, MandelbrotPanel mandelbrotPanel) {
+		this.server = server;
 		this.mandelbrotPanel = mandelbrotPanel;
 		this.mWidth = mandelbrotPanel.getWidth();
 		this.mHeight = mandelbrotPanel.getHeight();
@@ -83,14 +86,14 @@ public class MandelbrotMouseListener extends MouseAdapter {
 			// Mittelpunkt des Rechtecks wird mit einem Kreuz dargestellt
 			mandelbrotPanel.setRectangleX(middleRectX, middleRectY);
 		}
-		
+
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (!canceled) {
-			double xMove = mandelbrotPanel.getMoveX();
-			double yMove = mandelbrotPanel.getMoveY();
+			double xMove = server.getTaskBuilder().getMoveX();
+			double yMove = server.getTaskBuilder().getMoveY();
 
 			mandelbrotPanel.setRectangle(0, 0, 0, 0);
 			mandelbrotPanel.setRectangleX(0, 0);
@@ -98,10 +101,10 @@ public class MandelbrotMouseListener extends MouseAdapter {
 			xMove += (middleRectX - (mWidth / 2.0));
 			yMove += (middleRectY - (mHeight / 2.0));
 
-			mandelbrotPanel.setMoveX(xMove);
-			mandelbrotPanel.setMoveY(yMove);
+			server.moveX(xMove);
+			server.moveY(yMove);
 
-			mandelbrotPanel.zoomIn(((mWidth / (widthRect * 1.0)) + (mHeight / (heightRect * 1.0))) / 2.0);
+			server.zoomIn(((mWidth / (widthRect * 1.0)) + (mHeight / (heightRect * 1.0))) / 2.0);
 
 		}
 	}
@@ -112,9 +115,9 @@ public class MandelbrotMouseListener extends MouseAdapter {
 		double mouseRotation = e.getPreciseWheelRotation();
 
 		if (mouseRotation < 0)
-			mandelbrotPanel.zoomIn(mouseRotation * -0.2);
+			server.zoomIn(mouseRotation * -0.2);
 		else
-			mandelbrotPanel.zoomOut(mouseRotation * 0.2);
+			server.zoomOut(mouseRotation * 0.2);
 
 	}
 }

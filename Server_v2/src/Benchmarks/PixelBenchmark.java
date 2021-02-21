@@ -1,4 +1,4 @@
-package Benchmarks;
+package src.Benchmarks;
 
 public class PixelBenchmark extends Benchmark {
 

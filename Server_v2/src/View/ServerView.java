@@ -1,19 +1,21 @@
-package View;
+package src.View;
 
 import java.awt.Component;
-import java.awt.image.BufferedImage;
+import java.awt.Graphics;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
-import Listener.ButtonListener;
-import Listener.KeyboardListener;
-import Listener.WindowListener;
-import Panels.ButtonPanel;
-import Panels.ContentPanel;
-import Panels.MandelbrotPanel;
-import Panels.MonitorPanel;;
+import src.Listener.ButtonListener;
+import src.Listener.KeyboardListener;
+import src.Listener.MandelbrotMouseListener;
+import src.Listener.WindowListener;
+import src.Panels.ButtonPanel;
+import src.Panels.ContentPanel;
+import src.Panels.MandelbrotPanel;
+import src.Panels.MonitorPanel;
+import src.Server.Server;;
 
 /**
  * The class <code>ServerView</code> inherits from <code>JFrame</code>. It
@@ -25,6 +27,10 @@ import Panels.MonitorPanel;;
  */
 
 public class ServerView extends JFrame {
+	/*
+	 * "server" serves as controller
+	 */
+	private Server server;
 
 	/*
 	 * "contenPanel" overwrites the default content pane of ServerView and contains
@@ -57,8 +63,7 @@ public class ServerView extends JFrame {
 
 	private KeyboardListener keyboardListener;
 
-	private BufferedImage image;
-
+	private MandelbrotMouseListener mouseListener;
 	/*
 	 * Mandelbrot resolution
 	 */
@@ -107,9 +112,9 @@ public class ServerView extends JFrame {
 	/**
 	 * Creates a new ServerView.
 	 */
-	public ServerView() {
+	public ServerView(Server server) {
 		super("Mandelbrot_Server_Java");
-
+		this.server = server;
 		instantiate();
 		setupFrame();
 		addMandelbrotPanel();
@@ -128,10 +133,10 @@ public class ServerView extends JFrame {
 		mandelbrotPanel = new MandelbrotPanel(MANDELBROT_PANEL_WIDTH, MANDELBROT_PANEL_HEIGHT);
 		buttonPanel = new ButtonPanel(BUTTON_PANEL_WIDTH, BUTTON_PANEL_HEIGHT);
 		monitorPanel = new MonitorPanel(MONITOR_PANEL_WIDTH, MONITOR_PANEL_HEIGHT);
-		image = new BufferedImage(MANDELBROT_PANEL_WIDTH, MANDELBROT_PANEL_HEIGHT, BufferedImage.TYPE_INT_RGB);
 
-		buttonListener = new ButtonListener(mandelbrotPanel);
-		keyboardListener = new KeyboardListener(mandelbrotPanel);
+		buttonListener = new ButtonListener(server);
+		keyboardListener = new KeyboardListener(server);
+		mouseListener = new MandelbrotMouseListener(server, mandelbrotPanel);
 
 	}
 
@@ -160,7 +165,12 @@ public class ServerView extends JFrame {
 
 		int grid_width = MANDELBROT_PANEL_WIDTH / GRID_WIDTH;
 		int grid_height = MANDELBROT_PANEL_HEIGHT / GRID_HEIGHT;
-
+		
+		mandelbrotPanel.addMouseListener(mouseListener);
+		mandelbrotPanel.addMouseMotionListener(mouseListener);
+		mandelbrotPanel.addMouseWheelListener(mouseListener);
+		mandelbrotPanel.addKeyListener(keyboardListener);
+		
 		contentPanel.setLocation(mandelbrot_panel_offset_x, mandelbrot_panel_offset_y, grid_width, grid_height);
 		contentPanel.addComponent(mandelbrotPanel);
 
@@ -223,11 +233,12 @@ public class ServerView extends JFrame {
 		return monitorPanel;
 	}
 
-	public void setRGB(int x, int y, int value) {
-		image.setRGB(x, y, value);
+	public int getMandelbrotWidth() {
+		return MANDELBROT_PANEL_WIDTH;
 	}
-	
-	public void setImage() {
-		mandelbrotPanel.setImage(image);
+
+	public int getMandelbrotHeight() {
+		return MANDELBROT_PANEL_HEIGHT;
 	}
+
 }

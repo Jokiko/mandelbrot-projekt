@@ -1,4 +1,4 @@
-package Panels;
+package src.Panels;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -44,7 +44,7 @@ public class ButtonPanel extends JPanel {
 	private void initializeButtons() {
 
 		// Divide width by number of buttons
-		Dimension buttonSize = new Dimension( (WIDTH) / 7, HEIGHT);
+		Dimension buttonSize = new Dimension((int) Math.ceil((WIDTH) / 7.0), HEIGHT);
 
 		btnRestart = new JButton("Restart");
 		btnZoomIn = new JButton("Zoom In");
@@ -53,7 +53,7 @@ public class ButtonPanel extends JPanel {
 		btnDown = new JButton("Down");
 		btnRight = new JButton("Right");
 		btnZoomOut = new JButton("Zoom Out");
-		
+
 		btnRestart.setMinimumSize(buttonSize);
 		btnZoomIn.setMinimumSize(buttonSize);
 		btnLeft.setMinimumSize(buttonSize);
@@ -81,6 +81,9 @@ public class ButtonPanel extends JPanel {
 	}
 
 	private void addButtons() {
+
+		disableAll();
+
 		add(btnRestart);
 		add(btnZoomIn);
 		add(btnLeft);
@@ -88,6 +91,30 @@ public class ButtonPanel extends JPanel {
 		add(btnDown);
 		add(btnRight);
 		add(btnZoomOut);
+
+	}
+
+	public void disableAll() {
+
+		btnRestart.setEnabled(false);
+		btnZoomIn.setEnabled(false);
+		btnLeft.setEnabled(false);
+		btnUp.setEnabled(false);
+		btnDown.setEnabled(false);
+		btnRight.setEnabled(false);
+		btnZoomOut.setEnabled(false);
+
+	}
+
+	public void enableAll() {
+
+		btnRestart.setEnabled(true);
+		btnZoomIn.setEnabled(true);
+		btnLeft.setEnabled(true);
+		btnUp.setEnabled(true);
+		btnDown.setEnabled(true);
+		btnRight.setEnabled(true);
+		btnZoomOut.setEnabled(true);
 
 	}
 }

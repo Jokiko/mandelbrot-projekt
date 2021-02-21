@@ -1,10 +1,9 @@
-package Server;
+package src.Server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -23,26 +22,28 @@ import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
-import View.ServerView;
+import src.Mandelbrot.MandelbrotImage;
+import src.Mandelbrot.Task;
+import src.Mandelbrot.TaskBuilder;
+import src.View.ServerView;
 
 public class Server {
 
-	private ServerView userInterface;
-	private ServerSocket serverSocket;
 	private InetAddress host;
+
+	private ServerSocket serverSocket;
+	private ServerView userInterface;
+
+	private MandelbrotImage image;
+	private TaskBuilder taskbuilder;
+
 	private final int port;
 
-	public HashMap<String, Socket> client_sockets = new HashMap<>();
-	public HashMap<String, Socket> client_websockets = new HashMap<>();
-	public ArrayList<String> client_names = new ArrayList<>();
-
-//	public ArrayList<Socket> listRunning = new ArrayList<>();
-//	public ArrayList<Socket> listUnchecked = new ArrayList<>();
-//	public ArrayList<String> listTypes = new ArrayList<>();
-//	public ArrayList<String> listIP = new ArrayList<>();
-
-
-	private boolean check = true;
+	private HashMap<String, Socket> client_sockets = new HashMap<>();
+	private HashMap<String, Socket> client_websockets = new HashMap<>();
+	private ArrayList<String> client_names = new ArrayList<>();
+	private volatile int connected = 0;
+	private boolean check;
 
 	private String clientType;
 	private String data;
@@ -61,8 +62,9 @@ public class Server {
 		check = true;
 		initializeHost();
 		initializeServerSocket();
-//		initalizeListTypes();
 		initalizeUserInterface();
+		initializeTaskbuilder();
+		initializeImage();
 		acceptClient();
 	}
 
@@ -116,25 +118,21 @@ public class Server {
 		}
 	}
 
-//	private void initalizeListTypes() {
-//
-//		listTypes.add("plot");
-//		listTypes.add("click");
-//		listTypes.add("rectangle");
-//		listTypes.add("zoomIn");
-//		listTypes.add("zoomOut");
-//		listTypes.add("Up");
-//		listTypes.add("Down");
-//		listTypes.add("Left");
-//		listTypes.add("Right");
-//		listTypes.add("restart");
-//		listTypes.add("restartResume");
-//
-//	}
-
 	private void initalizeUserInterface() {
-		userInterface = new ServerView();
+		userInterface = new ServerView(this);
 		userInterface.setVisible(true);
+	}
+
+	private void initializeImage() {
+		int height = userInterface.getMandelbrotWidth();
+		int width = userInterface.getMandelbrotHeight();
+		image = new MandelbrotImage(width, height, MandelbrotImage.TYPE_INT_RGB);
+	}
+
+	private void initializeTaskbuilder() {
+		int width = userInterface.getMandelbrotPanel().getWidth();
+		int height = userInterface.getMandelbrotPanel().getHeight();
+		taskbuilder = new TaskBuilder(width, height);
 	}
 
 	private void acceptClient() {
@@ -148,12 +146,6 @@ public class Server {
 					System.out.println("clientType == null");
 					continue;
 				}
-
-//				if (listWebSocket.contains(clientSocket)) {
-//					webSocketHandshake(clientSocket);
-//					createServerThreadWebSocket(clientSocket);
-//					continue;
-//				}
 
 				createServerThread(clientSocket);
 
@@ -182,10 +174,8 @@ public class Server {
 
 			if (tmp.equals("type")) {
 				clientType = tokenizer.nextToken();
-				MethodsServerThread.sendMessage(new PrintWriter(clientSocket.getOutputStream()), "type");
 			} else {
 				clientType = "WebSocket";
-//				listWebSocket.add(clientSocket);
 				data = tmp + scan.useDelimiter("\\r\\n\\r\\n").next();
 				webSocketHandshake(clientSocket, data);
 			}
@@ -217,65 +207,79 @@ public class Server {
 		}
 
 	}
-//
-//	private void createServerThreadWebSocket(Socket clientSocket) {
-//
-//		String ip = clientSocket.getInetAddress().getHostAddress();
-//		ServerThreadWebSocket serverThreadWebSocket = new ServerThreadWebSocket(clientSocket, this);
-//		Thread stsThread = new Thread(serverThreadWebSocket);
-//
-//		listSocket.add(clientSocket);
-//		serverThreadWebSocket.setName(clientType + "_" + stsThread.getId());
-//		System.out.println("serverThread-Name: " + serverThreadWebSocket.getName());
-//		stsThread.start();
-//
-//	}
 
 	private void createServerThread(Socket clientSocket) {
-		String ip = clientSocket.getInetAddress().getHostAddress();
+	
 		SocketThread serverThread = new SocketThread(clientSocket, this);
 
-		client_sockets.put("Randy", clientSocket);
+		client_sockets.put("TestName", clientSocket);
+		serverThread.start();
 		System.out.println("ClientThread-Name: " + clientType + "_" + serverThread.getId());
-//		serverThread.run();
+
 	}
-	
-	public void setRGB(int x, int y, int value) {
-		userInterface.setRGB(x, y, value);
+
+	public void moveX(double factor) {
+		taskbuilder.moveX(factor);
+//		image.transformX(factor);
 	}
-	
+
+	public void moveY(double factor) {
+		taskbuilder.moveY(factor);
+//		image.transformY(factor);
+	}
+
+	public void zoomIn(double factor) {
+//		if (!taskbuilder.zoomIn(factor)) {
+//			image.transformZoomIn(factor);
+//		}
+		
+		taskbuilder.zoomIn(factor);
+	}
+
+	public void zoomOut(double factor) {
+//		if (!taskbuilder.zoomOut(factor)) {
+//			image.transformZoomOut(factor);
+//		}
+		taskbuilder.zoomOut(factor);
+	}
+
+	public synchronized void setRGB(int x, int y, int value) {
+		image.setRGB(x, y, value | value << 20);
+	}
+
 	public void setImage() {
-		userInterface.setImage();
+		userInterface.getMandelbrotPanel().setImage(image);
+	}
+
+	public void defaultImage() {
+		taskbuilder.defaultImage();
+	}
+
+	public void connect() {
+
+		if (++connected == 1)
+			userInterface.getButtonPanel().enableAll();
+
+		userInterface.getMonitorPanel().setNumberOfClients(connected);
+	}
+
+	public void disconnect() {
+
+		if (--connected == 0)
+			userInterface.getButtonPanel().disableAll();
+
+		userInterface.getMonitorPanel().setNumberOfClients(connected);
 	}
 
 	/*-Getter-Methods-------------------------------------------------------------*/
-//	public ArrayList<Socket> getListSocket() {
-//		return listSocket;
-//	}
-//
-//	public ArrayList<Socket> getListRunning() {
-//		return listRunning;
-//	}
-//
-//	public ArrayList<Socket> getListUnchecked() {
-//		return listUnchecked;
-//	}
-//
-//	public ArrayList<Socket> getListWebSocket() {
-//		return listWebSocket;
-//	}
-//
-//	public ArrayList<String> getListTypes() {
-//		return listTypes;
-//	}
-//
-//	public ArrayList<String> getListIP() {
-//		return listIP;
-//	}
-//
-//	public ArrayList<String> getListName() {
-//		return listName;
-//	}
+
+	public TaskBuilder getTaskBuilder() {
+		return taskbuilder;
+	}
+
+	public Task getTask() {
+		return taskbuilder.getTask();
+	}
 
 	/*----------------------------------------------------------------------------*/
 }
