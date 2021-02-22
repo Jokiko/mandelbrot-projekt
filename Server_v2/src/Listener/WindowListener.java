@@ -3,11 +3,19 @@ package src.Listener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import src.Server.Server;
+
 public class WindowListener extends WindowAdapter {
-    @Override
-    public void windowClosing(WindowEvent e) {
-//        ServerThread.sendMessageText("disconnect");
-//        ServerThreadWebSocket.sendMessageText("disconnect");
-        System.out.println("closing");
-    }
+
+	Server server;
+
+	public WindowListener(Server server) {
+		this.server = server;
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		System.out.println("Closing");
+		server.close();
+	}
 }
