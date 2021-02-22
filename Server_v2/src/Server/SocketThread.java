@@ -55,13 +55,13 @@ public class SocketThread implements Runnable {
 
 	}
 
-	public void sendMessage(byte[] task) throws IOException {
+	private void sendMessage(byte[] task) throws IOException {
 		dout.write(task);
 		writer.flush();
 	}
 
-	public void sendMessage(String text) {
-		System.out.println("SocketThread-" + getId() + ": " + text);
+	private void sendMessage(String text) {
+		System.out.println("SocketThread-" + thread.getId() + ": " + text);
 		writer.println(text);
 		writer.flush();
 	}
@@ -124,8 +124,8 @@ public class SocketThread implements Runnable {
 	private void sendTask() throws IOException {
 
 		task = server.getTask();
-		
-		if (task == null) { 
+
+		if (task == null) {
 			sendMessage("noTask\0");
 			return;
 		}
@@ -150,10 +150,6 @@ public class SocketThread implements Runnable {
 		bm.stop();
 	}
 
-	public long getId() {
-		return thread.getId();
-	}
-
 	private void close() {
 		System.out.println(Thread.currentThread().getName() + ": Connection Closing...");
 		try {
@@ -169,11 +165,11 @@ public class SocketThread implements Runnable {
 	}
 
 	public void run() {
+		
 		receiveMessage();
 
 		if (!disconnected)
 			disconnect();
-
 		System.out.println("ServerThread beendet");
 
 	}
