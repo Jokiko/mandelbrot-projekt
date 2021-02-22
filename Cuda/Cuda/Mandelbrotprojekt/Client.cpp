@@ -97,7 +97,7 @@ void Client::connectToServer() {
 	memset(&addr, 0, sizeof(SOCKADDR_IN)); // All 0's
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(PORT); // Host-to-Network-short function
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Change to Serveraddress later
+	addr.sin_addr.s_addr = inet_addr("192.168.178.23"); // Change to Serveraddress later
 	FIRST_CONTACT = "type/.../Cuda\n";
 	iResult = connect(s_socket, (SOCKADDR*)&addr, sizeof(SOCKADDR));
 
@@ -114,6 +114,9 @@ void Client::connectToServer() {
 
 	iResult = recv(s_socket, recvbuf, BUFLEN, 0);
 	checkReceiveError(iResult);
+
+	printf(recvbuf);
+
 };
 
 void Client::close() {
@@ -129,4 +132,5 @@ void Client::sendMessage(const char* message) {
 void Client::receiveMessage(char* receiveBuf, int len) {
 	iResult = recv(s_socket, receiveBuf, len, 0);
 	checkReceiveError(iResult);
-};
+}
+
