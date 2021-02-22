@@ -1,4 +1,3 @@
-/Panels/
-/View/
-/Listener/
-/Server/
+/src/
+/.class/
+/bin/
