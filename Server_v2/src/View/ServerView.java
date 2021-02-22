@@ -1,7 +1,6 @@
 package src.View;
 
 import java.awt.Component;
-import java.awt.Graphics;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -11,6 +10,7 @@ import src.Listener.ButtonListener;
 import src.Listener.KeyboardListener;
 import src.Listener.MandelbrotMouseListener;
 import src.Listener.WindowListener;
+import src.Mandelbrot.MandelbrotImage;
 import src.Panels.ButtonPanel;
 import src.Panels.ContentPanel;
 import src.Panels.MandelbrotPanel;
@@ -58,12 +58,24 @@ public class ServerView extends JFrame {
 
 	/*
 	 * "keyboardListener" is added to "mandelbrotPanel" to enable keyboard
-	 * navigation through the mandelbrot set
+	 * interactions
 	 */
 
 	private KeyboardListener keyboardListener;
 
+	/*
+	 * "mouseLister" is added to "mandelbrotPanel" to enable mouse and mouse-motion
+	 * interactions
+	 */
+
 	private MandelbrotMouseListener mouseListener;
+
+	/*
+	 * "windowListener" is added to "ServerView" JFrame and listens for closing
+	 * events
+	 */
+
+	private WindowListener windowListener;
 	/*
 	 * Mandelbrot resolution
 	 */
@@ -103,7 +115,9 @@ public class ServerView extends JFrame {
 	private int monitor_panel_offset_y;
 
 	/*
-	 * Determines how big a GridBagLayout cell is
+	 * Determines how big a GridBagLayout cell is (panel_width / grid_width =
+	 * cell_width) (panel_height / grid_height = cell_height)
+	 * 
 	 */
 
 	private final int GRID_WIDTH = 100;
@@ -115,7 +129,7 @@ public class ServerView extends JFrame {
 	public ServerView(Server server) {
 		super("Mandelbrot_Server_Java");
 		this.server = server;
-		instantiate();
+		initiate();
 		setupFrame();
 		addMandelbrotPanel();
 		addButtonPanel();
@@ -127,7 +141,7 @@ public class ServerView extends JFrame {
 	/*
 	 * Initiates
 	 */
-	private void instantiate() {
+	private void initiate() {
 
 		contentPanel = new ContentPanel(FRAME_WIDTH, FRAME_HEIGHT);
 		mandelbrotPanel = new MandelbrotPanel(MANDELBROT_PANEL_WIDTH, MANDELBROT_PANEL_HEIGHT);
@@ -137,6 +151,7 @@ public class ServerView extends JFrame {
 		buttonListener = new ButtonListener(server);
 		keyboardListener = new KeyboardListener(server);
 		mouseListener = new MandelbrotMouseListener(server, mandelbrotPanel);
+		windowListener = new WindowListener(server);
 
 	}
 
@@ -145,13 +160,13 @@ public class ServerView extends JFrame {
 	 */
 
 	private void setupFrame() {
+
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		addWindowListener(windowListener);
 		setSize(FRAME_WIDTH, FRAME_HEIGHT);
 		setResizable(false);
 		setLocationRelativeTo(null);
-		setIconImage(new ImageIcon("picture/mandelbrot.png").getImage());
-
-		addWindowListener(new WindowListener());
+		setIconImage(new ImageIcon("./picture/mandelbrot.png").getImage());
 		setContentPane(contentPanel);
 
 	}
@@ -165,12 +180,12 @@ public class ServerView extends JFrame {
 
 		int grid_width = MANDELBROT_PANEL_WIDTH / GRID_WIDTH;
 		int grid_height = MANDELBROT_PANEL_HEIGHT / GRID_HEIGHT;
-		
+
 		mandelbrotPanel.addMouseListener(mouseListener);
 		mandelbrotPanel.addMouseMotionListener(mouseListener);
 		mandelbrotPanel.addMouseWheelListener(mouseListener);
 		mandelbrotPanel.addKeyListener(keyboardListener);
-		
+
 		contentPanel.setLocation(mandelbrot_panel_offset_x, mandelbrot_panel_offset_y, grid_width, grid_height);
 		contentPanel.addComponent(mandelbrotPanel);
 
@@ -212,25 +227,20 @@ public class ServerView extends JFrame {
 		contentPanel.addComponent(monitorPanel);
 	}
 
-	/**
-	 * @return MandelbrotPanel
-	 */
-	public MandelbrotPanel getMandelbrotPanel() {
-		return mandelbrotPanel;
+	public void enableButtons() {
+		buttonPanel.enableAll();
 	}
 
-	/**
-	 * @return ButtonPanel
-	 */
-	public ButtonPanel getButtonPanel() {
-		return buttonPanel;
+	public void disableButtons() {
+		buttonPanel.disableAll();
 	}
 
-	/**
-	 * @return MonitorPanel
-	 */
-	public MonitorPanel getMonitorPanel() {
-		return monitorPanel;
+	public void setImage(MandelbrotImage image) {
+		mandelbrotPanel.setImage(image);
+	}
+
+	public void setNumberOfClients(int number) {
+		monitorPanel.setNumberOfClients(number);
 	}
 
 	public int getMandelbrotWidth() {
