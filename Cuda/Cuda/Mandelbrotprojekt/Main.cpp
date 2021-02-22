@@ -1,7 +1,9 @@
-#include <stdio.h>
-#include <windows.h>
 #include "Client.h"
 #include "CudaCalculator.h"
+#include <stdio.h>
+#include <windows.h>
+#include <time.h>
+
 #pragma comment( lib, "ws2_32.lib" )
 #define PORT 5000
 
@@ -12,7 +14,20 @@ using namespace std;
 int main(int argc, char const* argv[])
 {
 	Client client;
-	CudaCalculator cc(client, 2560, 1440);
-	cc.calculate(2);
+	char recvBuf[256];
+	clock_t t;
+	CudaCalculator cc(client, 1000, 1000);
+
+	client.sendMessage("connect/.../\n");
+	client.receiveMessage(recvBuf, 256);
+	printf(recvBuf);
+	while (true) {
+		t = clock();
+		cc.getTask();
+		t = clock() - t;
+		double time_taken = ((double)t) / CLOCKS_PER_SEC;
+		//printf("calculate took %f seconds to finish\n", time_taken);
+		client.sendMessage("frame\n");
+	};
 }
 
