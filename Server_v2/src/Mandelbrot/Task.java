@@ -13,11 +13,11 @@ public class Task {
 
 	public Task(int y, double xMove, double yMove, double zoom, int itr) {
 
-		y_bytes = ByteBuffer.allocate(4).putInt(y).array();
+		y_bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(y).array();
 		xMove_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(xMove).array();
 		yMove_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(yMove).array();
 		zoom_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(zoom).array();
-		iteration = ByteBuffer.allocate(4).putInt(itr).array();
+		iteration = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(itr).array();
 	}
 
 	public byte[] getY() {
