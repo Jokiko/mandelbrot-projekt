@@ -1,24 +1,14 @@
 package src.Server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
-import java.util.Scanner;
-import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
@@ -29,43 +19,52 @@ import src.View.ServerView;
 
 public class Server {
 
+	/* Used to build TCP connection */
 	private InetAddress host;
-
 	private ServerSocket serverSocket;
+	private ConnectionThread connectionThread;
+
+	/* Userinterface */
 	private ServerView userInterface;
 
+	/* Data to be displayed in "userInterface */
 	private MandelbrotImage image;
+
+	/* Creates tasks based on current user interactions */
 	private TaskBuilder taskbuilder;
 
-	private final int port;
-
+	/* Used to store client sockets */
 	private HashMap<String, Socket> client_sockets = new HashMap<>();
 	private HashMap<String, Socket> client_websockets = new HashMap<>();
-	private ArrayList<String> client_names = new ArrayList<>();
-	private volatile int connected = 0;
-	private boolean check;
 
-	private String clientType;
-	private String data;
+	/* TCP Serverport */
+	private final int port;
 
-	private OutputStream out;
+	/* Number of clients */
+	private volatile int connected;
 
+	/**
+	 * Constructor of {@code Server}
+	 * 
+	 * @param port The port this server will be waiting for connections
+	 */
 	public Server(int port) {
 		this.port = port;
+		this.connected = 0;
 	}
 
 	/**
 	 * Startup method. Can be called again by user via JOptionpane if any exception
 	 * occurs during initialization.
 	 */
+
 	public void startServer() {
-		check = true;
 		initializeHost();
 		initializeServerSocket();
+		initializeConnectionThread();
 		initalizeUserInterface();
-		initializeTaskbuilder();
+		initializeTaskBuilder();
 		initializeImage();
-		acceptClient();
 	}
 
 	/*
@@ -92,7 +91,6 @@ public class Server {
 			serverSocket = new ServerSocket();
 			serverSocket.bind(new InetSocketAddress(host, port));
 		} catch (IOException ioe) {
-			check = false;
 			System.out.println("Server error");
 			ioe.printStackTrace();
 			displayRestartPane();
@@ -114,109 +112,75 @@ public class Server {
 			System.out.println("\nServer restarted");
 			startServer();
 		} else {
-			System.out.println("\nCancel");
+			System.exit(1);
 		}
 	}
+
+	/*
+	 * Starts "connectionThread", which accepts incoming client connection requests
+	 */
+	private void initializeConnectionThread() {
+		connectionThread = new ConnectionThread(serverSocket, this);
+		connectionThread.start();
+	}
+
+	/*
+	 * Initializes the UserInterface
+	 */
 
 	private void initalizeUserInterface() {
 		userInterface = new ServerView(this);
 		userInterface.setVisible(true);
 	}
 
+	/*
+	 * Initializes "image", which contains the visualized mandelbrotset
+	 */
+
 	private void initializeImage() {
+
 		int height = userInterface.getMandelbrotWidth();
 		int width = userInterface.getMandelbrotHeight();
 		image = new MandelbrotImage(width, height, MandelbrotImage.TYPE_INT_RGB);
+
 	}
 
-	private void initializeTaskbuilder() {
-		int width = userInterface.getMandelbrotPanel().getWidth();
-		int height = userInterface.getMandelbrotPanel().getHeight();
+	/*
+	 * Initializes "taskbuilder", which provides the current tasks to be calculated
+	 * by the clients
+	 */
+
+	private void initializeTaskBuilder() {
+
+		int width = userInterface.getMandelbrotWidth();
+		int height = userInterface.getMandelbrotHeight();
 		taskbuilder = new TaskBuilder(width, height);
-	}
-
-	private void acceptClient() {
-		while (check) {
-			try {
-
-				Socket clientSocket = serverSocket.accept();
-				getClientType(clientSocket);
-
-				if (clientType == null) {
-					System.out.println("clientType == null");
-					continue;
-				}
-
-				createServerThread(clientSocket);
-
-			} catch (IOException ioe) {
-				check = false;
-				ioe.printStackTrace();
-			} catch (NoSuchAlgorithmException nsae) {
-				// TODO Auto-generated catch block
-				System.out.println("Error");
-				nsae.printStackTrace();
-			}
-		}
-	}
-
-	private void getClientType(Socket clientSocket) throws NoSuchAlgorithmException, IOException {
-
-		StringTokenizer tokenizer;
-		Scanner scan;
-		String tmp;
-		try {
-
-			out = clientSocket.getOutputStream();
-			scan = new Scanner(new BufferedReader(new InputStreamReader(clientSocket.getInputStream())));
-			tokenizer = new StringTokenizer(scan.next(), "/.../");
-			tmp = tokenizer.nextToken();
-
-			if (tmp.equals("type")) {
-				clientType = tokenizer.nextToken();
-			} else {
-				clientType = "WebSocket";
-				data = tmp + scan.useDelimiter("\\r\\n\\r\\n").next();
-				webSocketHandshake(clientSocket, data);
-			}
-			System.out.println("ClientType: " + clientType);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void webSocketHandshake(Socket clientSocket, String data) throws NoSuchAlgorithmException, IOException {
-
-		Matcher get = Pattern.compile("^GET").matcher(data);
-		Matcher match;
-
-		byte[] response;
-
-		if (get.find()) {
-			match = Pattern.compile("Sec-WebSocket-Key: (.*)").matcher(data);
-			if (match.find()) {
-				response = ("HTTP/1.1 101 Switching Protocols\r\n" + "Connection: Upgrade\r\n"
-						+ "Upgrade: websocket\r\n" + "Sec-WebSocket-Accept: "
-						+ Base64.getEncoder()
-								.encodeToString(MessageDigest.getInstance("SHA-1")
-										.digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-												.getBytes(StandardCharsets.UTF_8)))
-						+ "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
-				out.write(response, 0, response.length);
-			}
-		}
 
 	}
 
-	private void createServerThread(Socket clientSocket) {
-	
-		SocketThread serverThread = new SocketThread(clientSocket, this);
+	/*
+	 * package private method used by "connectionThread". Initiates and starts a
+	 * "SocketThread" object, which is added to "client_sockets"
+	 */
 
-		client_sockets.put("TestName", clientSocket);
-		serverThread.start();
-		System.out.println("ClientThread-Name: " + clientType + "_" + serverThread.getId());
+	void createSocketThread(Socket clientSocket, String name) {
+
+		SocketThread socketThread = new SocketThread(clientSocket, this);
+		client_sockets.put(name, clientSocket);
+		socketThread.start();
 
 	}
+
+	/*
+	 * package private method used by "connectionThread". Initiates and starts a
+	 * "WebsocketThread" object, which is added to "client_websockets"
+	 */
+
+	void createWebsocketThread(Socket clientSocket, String name) {
+		// TODO: Josua
+	}
+
+	/*---Interaction-methods-called-by-classes-of-package-"Listener"--*/
 
 	public void moveX(double factor) {
 		taskbuilder.moveX(factor);
@@ -232,7 +196,7 @@ public class Server {
 //		if (!taskbuilder.zoomIn(factor)) {
 //			image.transformZoomIn(factor);
 //		}
-		
+
 		taskbuilder.zoomIn(factor);
 	}
 
@@ -243,43 +207,53 @@ public class Server {
 		taskbuilder.zoomOut(factor);
 	}
 
-	public synchronized void setRGB(int x, int y, int value) {
-		image.setRGB(x, y, value | value << 20);
-	}
-
-	public void setImage() {
-		userInterface.getMandelbrotPanel().setImage(image);
-	}
-
 	public void defaultImage() {
 		taskbuilder.defaultImage();
 	}
 
-	public void connect() {
+	public void close() {
+		connectionThread.stop();
+	}
+
+	/*----------------------------------------------------------------*/
+
+	/*---Package-private-called-by-(Web)SocketThread------------------*/
+
+	synchronized void setRGB(int x, int y, int value) {
+		image.setRGB(x, y, value | value << 20);
+	}
+
+	void setImage() {
+		userInterface.setImage(image);
+	}
+
+	void connect() {
 
 		if (++connected == 1)
-			userInterface.getButtonPanel().enableAll();
+			userInterface.enableButtons();
 
-		userInterface.getMonitorPanel().setNumberOfClients(connected);
+		userInterface.setNumberOfClients(connected);
 	}
 
-	public void disconnect() {
+	void disconnect() {
 
 		if (--connected == 0)
-			userInterface.getButtonPanel().disableAll();
+			userInterface.disableButtons();
 
-		userInterface.getMonitorPanel().setNumberOfClients(connected);
+		userInterface.setNumberOfClients(connected);
 	}
 
-	/*-Getter-Methods-------------------------------------------------------------*/
+	/*----------------------------------------------------------------*/
+
+	/*-Getter-Methods-------------------------------------------------*/
 
 	public TaskBuilder getTaskBuilder() {
 		return taskbuilder;
 	}
 
-	public Task getTask() {
+	synchronized Task getTask() {
 		return taskbuilder.getTask();
 	}
 
-	/*----------------------------------------------------------------------------*/
+	/*----------------------------------------------------------------*/
 }
