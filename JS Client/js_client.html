@@ -24,8 +24,8 @@
 		});
 	  
 		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
-		var socket = new WebSocket('ws://localhost:5000');
-		//var socket = new WebSocket('ws://136.199.4.88:5000');
+		//var socket = new WebSocket('ws://localhost:5000');
+		var socket = new WebSocket('ws://169.254.108.186:5000');
 	  
 		//Funktion bei Verbindungsaufbau
 		socket.onopen = function (){
@@ -33,9 +33,9 @@
 			//Sendet Server Nachricht
 			for (i = 0; i < 1; i++) { 
 			//socket.send("Ping\n"); 
-			socket.send("type/.../WebSocket");
 			socket.send("connect/.../abc");
 			}
+			socket.send("task");
 		};
 		
 		//Log bei Fehler

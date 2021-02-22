@@ -177,7 +177,11 @@ public class Server {
 	 */
 
 	void createWebsocketThread(Socket clientSocket, String name) {
-		// TODO: Josua
+
+		WebsocketThread websocketThread = new WebsocketThread(clientSocket, this);
+		client_sockets.put(name, clientSocket);
+		websocketThread.start();
+
 	}
 
 	/*---Interaction-methods-called-by-classes-of-package-"Listener"--*/

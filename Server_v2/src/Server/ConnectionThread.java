@@ -42,7 +42,12 @@ public class ConnectionThread implements Runnable {
 			return;
 		}
 
-		server.createSocketThread(clientSocket, "Test" + System.nanoTime());
+		if (clientType == "WebSocket"){
+			server.createWebsocketThread(clientSocket, "Test " + System.nanoTime());
+		}
+		else{
+			server.createSocketThread(clientSocket, "Test" + System.nanoTime());
+		}
 	}
 
 	private void getClientType(Socket clientSocket) throws NoSuchAlgorithmException, IOException {
