@@ -20,6 +20,7 @@ import src.View.ServerView;
 public class Server {
 
 	/* Used to build TCP connection */
+	
 	private InetAddress host;
 	private ServerSocket serverSocket;
 	private ConnectionThread connectionThread;
@@ -139,8 +140,8 @@ public class Server {
 
 	private void initializeImage() {
 
-		int height = userInterface.getMandelbrotWidth();
-		int width = userInterface.getMandelbrotHeight();
+		int width = userInterface.getMandelbrotWidth();
+		int height = userInterface.getMandelbrotHeight();
 		image = new MandelbrotImage(width, height, MandelbrotImage.TYPE_INT_RGB);
 
 	}
