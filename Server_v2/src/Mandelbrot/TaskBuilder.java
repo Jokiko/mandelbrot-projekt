@@ -33,7 +33,7 @@ public class TaskBuilder {
 		zoom = 200;
 		accumulatedZoomFactor = 1;
 		depth = 0;
-		itr = 50;
+		itr = 200;
 	}
 
 	public void moveX(double factor) {
@@ -48,9 +48,10 @@ public class TaskBuilder {
 
 	public boolean zoomIn(double factor) {
 
-		accumulatedZoomFactor *= (1 + factor);
+//		accumulatedZoomFactor *= (1 + factor);
 
 		zoom *= (1 + factor);
+		
 		xMove += xMove * factor;
 		yMove += yMove * factor;
 
@@ -66,9 +67,10 @@ public class TaskBuilder {
 
 	public boolean zoomOut(double factor) {
 
-		accumulatedZoomFactor /= (1 + factor);
+//		accumulatedZoomFactor /= (1 + factor);
 
 		zoom /= (1 + factor);
+		
 		xMove -= xMove - (xMove / (1 + factor));
 		yMove -= yMove - (yMove / (1 + factor));
 
@@ -89,16 +91,17 @@ public class TaskBuilder {
 
 	private void increaseIteration(int depth) {
 		if (depth % 5 == 0)
-			itr += itr * 0.5;
+			itr += itr * 0.25;
 	}
 
 	private void decreaseIteration(int depth) {
 		if (depth % 5 == 0)
-			itr -= itr - (itr / 1.5);
+			itr -= itr - (itr / 1.25);
 	}
 
 	private void createNewTasks() {
 		calculated = false;
+		pos = 0;
 		for (int i = 0; i < imageHeight; i++) {
 			tasks[i] = new Task(i, xMove, yMove, zoom, itr);
 		}
