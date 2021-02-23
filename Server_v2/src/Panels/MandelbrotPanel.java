@@ -36,8 +36,6 @@ public class MandelbrotPanel extends JPanel {
 		this.HEIGHT = height;
 		this.DIMENSION = new Dimension(WIDTH, HEIGHT);
 		this.image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-//		this.mouseListener = new MandelbrotMouseListener(this);
-//		this.keyboardListener = new KeyboardListener(this);
 
 		setBorder(BorderFactory.createLineBorder(Color.WHITE));
 		setFocusable(true);
@@ -47,43 +45,13 @@ public class MandelbrotPanel extends JPanel {
 
 	}
 
-//	private void plotPoints() {
-//
-//		double zy;
-//		double zx;
-//		double cx;
-//		double cy;
-//		double temp;
-//		int itr;
-//		int colorItr = 20;
-//
-//		for (int y = 0; y < HEIGHT; y++) {
-//			for (int x = 0; x < WIDTH; x++) {
-//
-//				zx = zy = 0;
-//				cx = (x - (WIDTH / 2) + xMove) / zoomX;
-//				cy = (y - (HEIGHT / 2) + yMove) / zoomY;
-//				// jeweils Division mit 2, damit in der Mitte des Bildschirms
-//
-//				itr = 50;
-//
-//				while (zx * zx + zy * zy < 4 && itr > 0) {
-//					temp = zx * zx - zy * zy + cx;
-//					zy = 2 * zx * zy + cy;
-//					zx = temp;
-//					itr--;
-//				}
-//				image.setRGB(x, y, itr | (itr << colorItr));
-//			}
-//		}
-//	}
-
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		g.drawImage(image, 0, 0, this);
 		drawAxisCross(g);
 		drawRectangle(g);
 		drawRectangleX(g);
+		requestFocus();
 	}
 
 	private void drawAxisCross(Graphics g) {
@@ -112,68 +80,14 @@ public class MandelbrotPanel extends JPanel {
 	}
 
 	private void drawRectangleX(Graphics g) {
+
 		g.setColor(Color.WHITE);
 		g.drawLine(rectCenterX, rectCenterY, rectCenterX - 5, rectCenterY);
 		g.drawLine(rectCenterX, rectCenterY, rectCenterX + 5, rectCenterY);
 		g.drawLine(rectCenterX, rectCenterY, rectCenterX, rectCenterY - 5);
 		g.drawLine(rectCenterX, rectCenterY, rectCenterX, rectCenterY + 5);
 
-		rectCenterX = 0;
-		rectCenterY = 0;
 	}
-
-//	public void restart() {
-//
-//		zoomX = 200;
-//		zoomY = 200;
-//
-//		xMove = 0;
-//		yMove = 0;
-//
-//		plotPoints();
-//		repaint();
-//	}
-//
-//	public void zoomIn(double factor) {
-//
-//		zoomX *= (1 + factor);
-//		zoomY *= (1 + factor);
-//
-//		xMove += xMove * factor;
-//		yMove += yMove * factor;
-//
-//		plotPoints();
-//		validate();
-//		repaint();
-//
-//	}
-//
-//	public void zoomOut(double factor) {
-//
-//		zoomX /= (1 + factor);
-//		zoomY /= (1 + factor);
-//
-//		xMove -= xMove * factor;
-//		yMove -= yMove * factor;
-//
-//		plotPoints();
-//		validate();
-//		repaint();
-//	}
-//
-//	public void moveX(double factor) {
-//		xMove += factor;
-//		plotPoints();
-//		validate();
-//		repaint();
-//	}
-//
-//	public void moveY(double factor) {
-//		yMove += factor;
-//		plotPoints();
-//		validate();
-//		repaint();
-//	}
 
 	public int getHeight() {
 		return HEIGHT;
