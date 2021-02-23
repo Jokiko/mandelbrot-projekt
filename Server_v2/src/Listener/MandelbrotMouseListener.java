@@ -26,6 +26,9 @@ public class MandelbrotMouseListener extends MouseAdapter {
 	private int endX;
 	private int endY;
 
+	private double factorX;
+	private double factorY;
+
 	private int widthRect;
 	private int heightRect;
 
@@ -92,20 +95,19 @@ public class MandelbrotMouseListener extends MouseAdapter {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (!canceled) {
-			double xMove = server.getTaskBuilder().getMoveX();
-			double yMove = server.getTaskBuilder().getMoveY();
-
+			
 			mandelbrotPanel.setRectangle(0, 0, 0, 0);
 			mandelbrotPanel.setRectangleX(0, 0);
 
-			xMove += (middleRectX - (mWidth / 2.0));
-			yMove += (middleRectY - (mHeight / 2.0));
+			factorX = (middleRectX - (mWidth / 2.0));
+			factorY = (middleRectY - (mHeight / 2.0));
 
-			server.moveX(xMove);
-			server.moveY(yMove);
+			server.moveX(factorX);
+			server.moveY(factorY);
 
-			server.zoomIn(((mWidth / (widthRect * 1.0)) + (mHeight / (heightRect * 1.0))) / 2.0);
-
+//			server.zoomIn(((mWidth / (widthRect * 1.0)) + (mHeight / (heightRect * 1.0))) / 2.0);
+			server.zoomIn(0.2);
+		
 		}
 	}
 
