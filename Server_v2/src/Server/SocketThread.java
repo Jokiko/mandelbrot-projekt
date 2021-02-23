@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import src.Benchmarks.PixelBenchmark;
@@ -61,7 +62,7 @@ public class SocketThread implements Runnable {
 	}
 
 	private void sendMessage(String text) {
-		System.out.println("SocketThread-" + thread.getId() + ": " + text);
+//		System.out.println("SocketThread-" + thread.getId() + ": " + text);
 		writer.println(text);
 		writer.flush();
 	}
@@ -90,13 +91,17 @@ public class SocketThread implements Runnable {
 					server.setImage();
 					break;
 				case "frame":
+					server.setImage();
 					fm.stop();
-					System.out.println("Total time frame (real): " + fm.getResult());
+//					System.out.println("Total time frame (real): " + fm.getResult());
 					break;
+				case "s":
+					return;
 				default:
 					plot(input);
 				}
 			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -129,24 +134,31 @@ public class SocketThread implements Runnable {
 			sendMessage("noTask\0");
 			return;
 		}
+		
 		sendMessage("task\0");
+		receiveMessage();
 		sendMessage(task.getY());
+		receiveMessage();
 		sendMessage(task.getxMove());
+		receiveMessage();
 		sendMessage(task.getyMove());
+		receiveMessage();
 		sendMessage(task.getZoom());
+		receiveMessage();
 		sendMessage(task.getItr());
-
+		
 	}
 
 	private void plot(String compare) throws IOException {
 		int x;
 		int y;
 		int itr;
-		int colorItr = 20;
 		x = Integer.parseInt(compare);
 		y = Integer.parseInt(reader.readLine());
 		itr = Integer.parseInt(reader.readLine());
-		server.setRGB(x, y, itr | (itr << colorItr));
+		
+		server.setRGB(x, y, itr);
+//		System.out.println("x: " + x + " y: " + y + " itr: " + itr);
 		bm.stop();
 	}
 
