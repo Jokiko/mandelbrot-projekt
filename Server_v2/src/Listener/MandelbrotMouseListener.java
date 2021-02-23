@@ -105,8 +105,7 @@ public class MandelbrotMouseListener extends MouseAdapter {
 			server.moveX(factorX);
 			server.moveY(factorY);
 
-//			server.zoomIn(((mWidth / (widthRect * 1.0)) + (mHeight / (heightRect * 1.0))) / 2.0);
-			server.zoomIn(0.2);
+			server.zoomIn(((mWidth / (widthRect * 1.0)) + (mHeight / (heightRect * 1.0))) / 2.0);
 		
 		}
 	}
