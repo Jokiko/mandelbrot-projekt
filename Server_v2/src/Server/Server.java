@@ -180,7 +180,7 @@ public class Server {
 	void createWebsocketThread(Socket clientSocket, String name) {
 
 		WebsocketThread websocketThread = new WebsocketThread(clientSocket, this);
-		client_sockets.put(name, clientSocket);
+		client_websockets.put(name, clientSocket);
 		websocketThread.start();
 
 	}

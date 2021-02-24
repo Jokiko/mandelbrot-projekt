@@ -42,7 +42,7 @@ public class ConnectionThread implements Runnable {
 			return;
 		}
 
-		if (clientType == "WebSocket"){
+		if (clientType.equals("WebSocket")){
 			server.createWebsocketThread(clientSocket, "Test " + System.nanoTime());
 		}
 		else{
