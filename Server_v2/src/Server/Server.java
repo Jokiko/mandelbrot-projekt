@@ -38,6 +38,14 @@ public class Server {
 	/* Number of clients */
 	private volatile int connected;
 
+	/******** Getter ********/
+	public int getMANDELBROT_PANEL_WIDTH() {
+		return userInterface.getMANDELBROT_PANEL_WIDTH();
+	}
+	public int getMANDELBROT_PANEL_HEIGHT() {
+		return userInterface.getMANDELBROT_PANEL_HEIGHT();
+	}
+
 	/**
 	 * Constructor of {@code Server}
 	 * 

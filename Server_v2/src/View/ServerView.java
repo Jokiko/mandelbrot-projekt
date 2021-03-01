@@ -116,6 +116,14 @@ public class ServerView extends JFrame {
 	private final int GRID_WIDTH = 100;
 	private final int GRID_HEIGHT = 100;
 
+	/******** Getter ********/
+	public int getMANDELBROT_PANEL_WIDTH() {
+		return MANDELBROT_PANEL_WIDTH;
+	}
+	public int getMANDELBROT_PANEL_HEIGHT() {
+		return MANDELBROT_PANEL_HEIGHT;
+	}
+
 	/**
 	 * Creates a new ServerView.
 	 */
