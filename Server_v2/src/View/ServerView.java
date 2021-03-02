@@ -2,9 +2,7 @@ package src.View;
 
 import java.awt.Component;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import src.Listener.ButtonListener;
 import src.Listener.KeyboardListener;
@@ -15,7 +13,7 @@ import src.Panels.ButtonPanel;
 import src.Panels.ContentPanel;
 import src.Panels.MandelbrotPanel;
 import src.Panels.MonitorPanel;
-import src.Server.Server;;
+import src.Server.Server;
 
 /**
  * The class <code>ServerView</code> inherits from <code>JFrame</code>. It
@@ -33,18 +31,21 @@ public class ServerView extends JFrame {
 	private Server server;
 
 	/*
-	 * "contenPanel" overwrites the default content pane of ServerView and contains
+	 * "contentPanel" overwrites the default content pane of ServerView and contains
 	 * every other panel created.
 	 */
 	private ContentPanel contentPanel;
+
 	/*
 	 * "mandelbrotPanel" displays the calculated mandelbrot set
 	 */
 	private MandelbrotPanel mandelbrotPanel;
+
 	/*
 	 * "buttonPanel" contains every button to navigate through the mandelbrot set
 	 */
 	private ButtonPanel buttonPanel;
+
 	/*
 	 * "monitorPanel" displays monitoring values
 	 */
@@ -53,60 +54,53 @@ public class ServerView extends JFrame {
 	/*
 	 * "buttonListener" is added to all buttons of "buttonPanel"
 	 */
-
 	private ButtonListener buttonListener;
 
 	/*
 	 * "keyboardListener" is added to "mandelbrotPanel" to enable keyboard
 	 * interactions
 	 */
-
 	private KeyboardListener keyboardListener;
 
 	/*
 	 * "mouseLister" is added to "mandelbrotPanel" to enable mouse and mouse-motion
 	 * interactions
 	 */
-
 	private MandelbrotMouseListener mouseListener;
 
 	/*
 	 * "windowListener" is added to "ServerView" JFrame and listens for closing
 	 * events
 	 */
-
 	private WindowListener windowListener;
+
 	/*
 	 * Mandelbrot resolution
 	 */
-
-	private final int MANDELBROT_PANEL_WIDTH = 1000;
-	private final int MANDELBROT_PANEL_HEIGHT = 1000;
+	private int MANDELBROT_PANEL_WIDTH;
+	private int MANDELBROT_PANEL_HEIGHT;
 
 	/*
 	 * "buttonPanel" size (depends on mandelbrot resolution)
 	 */
-	private final int BUTTON_PANEL_WIDTH = MANDELBROT_PANEL_WIDTH;
+	private int BUTTON_PANEL_WIDTH;
 	private final int BUTTON_PANEL_HEIGHT = 50;
 
 	/*
 	 * "monitorPanel" size (depends on mandelbrot resolution)
 	 */
-
 	private final int MONITOR_PANEL_WIDTH = 200;
-	private final int MONITOR_PANEL_HEIGHT = MANDELBROT_PANEL_HEIGHT;
+	private int MONITOR_PANEL_HEIGHT;
 
 	/*
 	 * total screen size needed (depends on all components)
 	 */
-
-	private final int FRAME_WIDTH = MANDELBROT_PANEL_WIDTH + MONITOR_PANEL_WIDTH;
-	private final int FRAME_HEIGHT = MANDELBROT_PANEL_HEIGHT + BUTTON_PANEL_HEIGHT;
+	private int FRAME_WIDTH;
+	private int FRAME_HEIGHT;
 
 	/*
 	 * GridBagLayout offsets (needed to align every component)
 	 */
-
 	private int mandelbrot_panel_offset_x = 0;
 	private int mandelbrot_panel_offset_y = 0;
 	private int button_panel_offset_x;
@@ -119,23 +113,49 @@ public class ServerView extends JFrame {
 	 * cell_width) (panel_height / grid_height = cell_height)
 	 * 
 	 */
-
 	private final int GRID_WIDTH = 100;
 	private final int GRID_HEIGHT = 100;
+
+	/******** Getter ********/
+	public int getMANDELBROT_PANEL_WIDTH() {
+		return MANDELBROT_PANEL_WIDTH;
+	}
+	public int getMANDELBROT_PANEL_HEIGHT() {
+		return MANDELBROT_PANEL_HEIGHT;
+	}
 
 	/**
 	 * Creates a new ServerView.
 	 */
-	public ServerView(Server server) {
+	public ServerView(Server server, int width, int height) {
 		super("Mandelbrot_Server_Java");
 		this.server = server;
+
+		setVariables(width, height);
+
 		initiate();
 		setupFrame();
 		addMandelbrotPanel();
 		addButtonPanel();
 		addMonitorPanel();
+
 		pack();
 
+	}
+
+	/*
+	 * sets the variables
+	 */
+	private void setVariables(int width, int height){
+
+		MANDELBROT_PANEL_WIDTH = width;
+		MANDELBROT_PANEL_HEIGHT = height;
+
+		FRAME_WIDTH = width + MONITOR_PANEL_WIDTH;
+		FRAME_HEIGHT = height + BUTTON_PANEL_HEIGHT;
+
+		BUTTON_PANEL_WIDTH = width;
+		MONITOR_PANEL_HEIGHT = height;
 	}
 
 	/*
@@ -158,7 +178,6 @@ public class ServerView extends JFrame {
 	/*
 	 * Calls JFrame methods to setup our Window
 	 */
-
 	private void setupFrame() {
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -175,7 +194,6 @@ public class ServerView extends JFrame {
 	 * Adds the "mandelbrotPanel" as the top-left placed component (offset (0,0))
 	 * and calculates the correct offsets of its direct neighbor components.
 	 */
-
 	private void addMandelbrotPanel() {
 
 		int grid_width = MANDELBROT_PANEL_WIDTH / GRID_WIDTH;
@@ -217,7 +235,6 @@ public class ServerView extends JFrame {
 	/*
 	 * Adds "monitorPanel" right next to the "mandelbrotPanel"
 	 */
-
 	private void addMonitorPanel() {
 
 		int grid_width = MONITOR_PANEL_WIDTH / GRID_WIDTH;

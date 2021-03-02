@@ -1,16 +1,10 @@
 package src.Server;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.net.*;
 import java.util.HashMap;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 import src.Mandelbrot.MandelbrotImage;
 import src.Mandelbrot.Task;
@@ -44,6 +38,14 @@ public class Server {
 	/* Number of clients */
 	private volatile int connected;
 
+	/******** Getter ********/
+	public int getMANDELBROT_PANEL_WIDTH() {
+		return userInterface.getMANDELBROT_PANEL_WIDTH();
+	}
+	public int getMANDELBROT_PANEL_HEIGHT() {
+		return userInterface.getMANDELBROT_PANEL_HEIGHT();
+	}
+
 	/**
 	 * Constructor of {@code Server}
 	 * 
@@ -58,12 +60,11 @@ public class Server {
 	 * Startup method. Can be called again by user via JOptionpane if any exception
 	 * occurs during initialization.
 	 */
-
 	public void startServer() {
 		initializeHost();
 		initializeServerSocket();
 		initializeConnectionThread();
-		initalizeUserInterface();
+		initializeUserInterface();
 		initializeTaskBuilder();
 		initializeImage();
 	}
@@ -72,7 +73,6 @@ public class Server {
 	 * Initializes the host variable. Calls "displayRestartPane()" in case of
 	 * exception
 	 */
-
 	private void initializeHost() {
 		try {
 			host = InetAddress.getLocalHost();
@@ -86,7 +86,6 @@ public class Server {
 	 * Initializes the serverSocket. Calls "displayRestartPane()" in case of
 	 * exception
 	 */
-
 	private void initializeServerSocket() {
 		try {
 			serverSocket = new ServerSocket();
@@ -104,7 +103,6 @@ public class Server {
 	/*
 	 * Displays an JOptionPane to retry the startup in case of exception.
 	 */
-
 	private void displayRestartPane() {
 		int input = JOptionPane.showOptionDialog(null, "Server could not be started", "ERROR",
 				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] { "Restart", "Cancel" },
@@ -126,18 +124,77 @@ public class Server {
 	}
 
 	/*
+	 * sets the width and height for the mandelbrotPanel
+	 */
+	private int[] setResolution(){
+		int[] resolution = {0, 0};
+		JTextField widthField = new JTextField(5);
+		JTextField heightField = new JTextField(5);
+
+		JPanel myPanel = new JPanel();
+		myPanel.add(new JLabel("Width:"));
+		myPanel.add(widthField);
+		myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+		myPanel.add(new JLabel("Height:"));
+		myPanel.add(heightField);
+
+		/*int result = JOptionPane.showOptionDialog(null, myPanel, "Enter Resolution (no input: 1000x1000)", JOptionPane.OK_CANCEL_OPTION,
+				JOptionPane.QUESTION_MESSAGE,null, new Object[]{"Confirm", "Cancel"}, null);//*/
+		int result = JOptionPane.showConfirmDialog(null, myPanel,
+				"Enter Resolution (no input: 1000x1000)", JOptionPane.OK_CANCEL_OPTION);//*/
+		if (result == JOptionPane.OK_OPTION) {
+			try {
+				if (widthField.getText().equals("")) {
+					System.out.println("Width value (no input): 1000");
+					resolution[0] = 500;
+				} else {
+					resolution[0] = Integer.parseInt(widthField.getText());
+					System.out.println("Width value: " + resolution[0]);
+				}
+				if (heightField.getText().equals("")) {
+					System.out.println("Height value (no input): 1000");
+					resolution[1] = 500;
+				} else {
+					resolution[1] = Integer.parseInt(heightField.getText());
+					System.out.println("Height value: " + resolution[1]);
+				}
+				if(resolution[0] <= 0 || resolution[1] <= 0){
+					JOptionPane.showOptionDialog(null, "Width (" + resolution[0] + ") and height (" + resolution[1] + ") \ncannot be <= 0", "ERROR",
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.ERROR_MESSAGE, null,
+							new String[]{"OK"}, null);
+				}
+			}catch(NumberFormatException e){
+				JOptionPane.showOptionDialog(null, "Wrong input for resolution", "ERROR",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.ERROR_MESSAGE, null,
+						new String[]{"OK"}, null);
+			}
+		}else{
+			System.out.println("Cancel");
+			System.exit(1);
+			//System.out.println("Cancel means resolution stands at 1000x1000");
+			//resolution[0] = resolution[1] = 1000;
+		}
+		return resolution;
+	}
+
+	/*
 	 * Initializes the UserInterface
 	 */
+	private void initializeUserInterface() {
+		int[] resolution = setResolution();
 
-	private void initalizeUserInterface() {
-		userInterface = new ServerView(this);
+		if(resolution[0] <= 0 || resolution[1] <= 0){
+			resolution = setResolution();
+		}
+		userInterface = new ServerView(this, resolution[0], resolution[1]);
 		userInterface.setVisible(true);
 	}
 
 	/*
 	 * Initializes "image", which contains the visualized mandelbrotset
 	 */
-
 	private void initializeImage() {
 
 		int width = userInterface.getMandelbrotWidth();
@@ -150,7 +207,6 @@ public class Server {
 	 * Initializes "taskbuilder", which provides the current tasks to be calculated
 	 * by the clients
 	 */
-
 	private void initializeTaskBuilder() {
 
 		int width = userInterface.getMandelbrotWidth();
@@ -163,7 +219,6 @@ public class Server {
 	 * package private method used by "connectionThread". Initiates and starts a
 	 * "SocketThread" object, which is added to "client_sockets"
 	 */
-
 	void createSocketThread(Socket clientSocket, String name) {
 
 		SocketThread socketThread = new SocketThread(clientSocket, this);
@@ -174,13 +229,24 @@ public class Server {
 
 	/*
 	 * package private method used by "connectionThread". Initiates and starts a
-	 * "WebsocketThread" object, which is added to "client_websockets"
+	 * "AndroidSocketThread" object, which is added to "client_sockets"
 	 */
+	void createAndroidSocketThread(Socket clientSocket, String name) {
 
-	void createWebsocketThread(Socket clientSocket, String name) {
+		AndroidSocketThread androidSocketThread = new AndroidSocketThread(clientSocket, this);
+		client_sockets.put(name, clientSocket);
+		androidSocketThread.start();
+
+	}
+
+	/*
+	 * package private method used by "connectionThread". Initiates and starts a
+	 * "WebSocketThread" object, which is added to "client_websockets"
+	 */
+	void createWebSocketThread(Socket clientSocket, String name) {
 
 		WebsocketThread websocketThread = new WebsocketThread(clientSocket, this);
-		client_sockets.put(name, clientSocket);
+		client_websockets.put(name, clientSocket);
 		websocketThread.start();
 
 	}
