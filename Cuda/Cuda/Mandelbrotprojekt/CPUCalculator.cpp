@@ -1,6 +1,3 @@
-
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 #include <string>
 #include <sstream>
 #include <stdio.h>
@@ -9,18 +6,18 @@
 
 using namespace std;
 
-class CudaCalculator {
+class CPUCalculator {
 
 public:
 
-	CudaCalculator(Client& client, int imageWidth, int imageHeight);
+	CPUCalculator(Client& client, int imageWidth, int imageHeight);
 
 	void calculate(int y, double xMove, double yMove, double zoom, int itr);
 	void getTask();
 	void formatResult(int x, int y, int itr);
 
 private:
-	CudaCalculator();
+	CPUCalculator();
 	Client* client;
 	string package;
 	int imageWidth;
@@ -34,13 +31,13 @@ private:
 };
 
 
-CudaCalculator::CudaCalculator(Client& client, int imageWidth, int imageHeight) {
+CPUCalculator::CPUCalculator(Client& client, int imageWidth, int imageHeight) {
 	this->client = &client;
 	this->imageWidth = imageWidth;
 	this->imageHeight = imageHeight;
 }
 
-void CudaCalculator::calculate(int y, double xMove, double yMove, double zoom, int itr) {
+void CPUCalculator::calculate(int y, double xMove, double yMove, double zoom, int itr) {
 
 	double tmp;
 
@@ -63,7 +60,7 @@ void CudaCalculator::calculate(int y, double xMove, double yMove, double zoom, i
 	package.clear();
 }
 
-void CudaCalculator::formatResult(int x, int y, int itr) {
+void CPUCalculator::formatResult(int x, int y, int itr) {
 
 	//	package.append("\n").append(to_string(y)).append("\n").append(to_string(itr)).append("\n");
 	package += to_string(x);
@@ -76,7 +73,7 @@ void CudaCalculator::formatResult(int x, int y, int itr) {
 }
 
 
-void CudaCalculator::getTask() {
+void CPUCalculator::getTask() {
 
 	char check[128];
 	char y_bytes[4];

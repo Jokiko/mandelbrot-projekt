@@ -4,17 +4,17 @@
 
 using namespace std;
 
-class CudaCalculator {
+class CPUCalculator {
 
 public:
 
-	CudaCalculator(Client& client, int imageWidth, int imageHeight);
+	CPUCalculator(Client& client, int imageWidth, int imageHeight);
 	void calculate(int y, double xMove, double yMove, double zoom, int itr);
 	void getTask();
 	void formatResult(int x, int y, int itr);
 
 private:
-	CudaCalculator();
+	CPUCalculator();
 	Client* client;
 	string package;
 	int imageWidth;

@@ -97,7 +97,7 @@ void Client::connectToServer() {
 	memset(&addr, 0, sizeof(SOCKADDR_IN)); // All 0's
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(PORT); // Host-to-Network-short function
-	addr.sin_addr.s_addr = inet_addr("192.168.178.23"); // Change to Serveraddress later
+	addr.sin_addr.s_addr = inet_addr("136.199.5.5"); // Change to Serveraddress later
 	FIRST_CONTACT = "type/.../Cuda\n";
 	iResult = connect(s_socket, (SOCKADDR*)&addr, sizeof(SOCKADDR));
 

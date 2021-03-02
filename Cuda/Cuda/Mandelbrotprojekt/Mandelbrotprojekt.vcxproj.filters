@@ -18,12 +18,18 @@
     <ClInclude Include="CudaCalculator.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="CPUCalculator.h">
+      <Filter>Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUCalculator.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
   </ItemGroup>
