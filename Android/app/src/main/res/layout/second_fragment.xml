@@ -81,7 +81,7 @@
             android:id="@+id/txtAnzClients"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/number_clients"
+            android:text="@string/clients"
             android:textAlignment="center"
             android:textSize="24sp"/>
     </LinearLayout>

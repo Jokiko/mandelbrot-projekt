@@ -1,9 +1,6 @@
 package com.example.studienprojekt_android;
 
-import android.os.Looper;
 import android.util.Log;
-
-import androidx.fragment.app.FragmentActivity;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -13,26 +10,49 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client {
-    private static final String TAG = Client.class.getSimpleName();
-    private static String SERVER_IP;
-    private static int SERVER_PORT;
+    private final Connect connect;
+    private final String ip;
+    private final int port;
+
     private static PrintWriter mBufferOut;
 
-    static Socket socket;
+    private static Socket socket;
 
-    /*public Reader mReader;
-    public static Thread receiveThread;
-    FragmentActivity activity;//*/
+    /************** Getter **************/
+    public static Socket getSocket() {
+        return socket;
+    }
 
     /**
-     * Client()
+     * Constructor of {@code Client}
+     * @param connect Connect
      * @param ip IP-Address
      * @param port Port-Number
      */
-    Client(String ip, int port){//, FragmentActivity fa){
-        SERVER_IP = ip;
-        SERVER_PORT = port;
-        //activity = fa;
+    public Client(Connect connect, String ip, int port){
+        this.connect = connect;
+        this.ip = ip;
+        this.port = port;
+    }
+
+    /**
+     * sendMessageRunnable()
+     * @param type String
+     * @param content String
+     * @return runnable Runnable
+     */
+    private static Runnable sendMessageRunnable(String type, String content){
+        return () -> {
+            try {
+                String message = type + "/.../" + content;
+                Log.d("sendMessage", "message:" + message);
+                //Log.d("Socket", "vor mBufferOut: " + (socket != null));
+                mBufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+                mBufferOut.println(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
     }
 
     /**
@@ -42,26 +62,40 @@ public class Client {
      * @param content String
      */
     public synchronized static void sendMessage(String type, String content) {
-        Runnable runnable = () -> {
+        new Thread(sendMessageRunnable(type, content)).start();
+    }
+
+    /**
+     * sendMessageRunnable()
+     * @param message String
+     * @return runnable Runnable
+     */
+    private static Runnable sendMessageRunnable(String message){
+        return () -> {
             try {
-                String message = type + "/.../" + content;
-                Log.d(TAG, "Sending: " + message);
+                Log.d("sendMessage", "message:" + message);
                 mBufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
                 mBufferOut.println(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         };
-        Thread thread = new Thread(runnable);
-        thread.start();
+    }
+
+    /**
+     * sendMessage()
+     * Sends the message entered by client to the server
+     * @param message String
+     */
+    public synchronized static void sendMessage(String message) {
+        new Thread(sendMessageRunnable(message)).start();
     }
 
     /**
      * stopClient()
      * Close the connection and release the members
      */
-    public static void stopClient() {
-        //sendMessage("close", "");
+    public void stopClient() {
         if (mBufferOut != null) {
             mBufferOut.flush();
             mBufferOut.close();
@@ -72,29 +106,24 @@ public class Client {
         }catch(IOException e){
             e.printStackTrace();
         }
-        Log.d("Client stop", "stopClient()");
     }
 
     /**
      * run()
      */
     public void run() {
-        Log.d("main-thread", "Client.run(): " + (Looper.getMainLooper().getThread() == Thread.currentThread()));
         try {
-            InetAddress serverAdr = InetAddress.getByName(SERVER_IP);
-            Log.d("TCP Client", "C: Connecting...");
-            socket = new Socket(serverAdr, SERVER_PORT);
-            FirstFragment.connected = true;
+            //TODO InetAddress.getByName(); anpassen
+            InetAddress serverAdr = InetAddress.getByName("192.168.178.47");
+            //InetAddress serverAdr = InetAddress.getByName(ip);
+            //Log.d("Socket", "vor: " + (socket != null));
+            socket = new Socket(serverAdr, port);
+            //Log.d("Socket", "nach: " + (socket != null));
+            connect.setConnected(true);
         } catch (Exception e) {
-            FirstFragment.connected = false;
-            Log.e("TCP", "C: Error", e);
+            connect.setConnected(false);
+            e.printStackTrace();
         }
-        /*if(FirstFragment.connected){
-            mReader = new Reader(socket, activity);
-            receiveThread = new Thread(mReader);
-            receiveThread.start();
-            Log.d("Reader","Reader.run()");
-        }//*/
     }
 }
 

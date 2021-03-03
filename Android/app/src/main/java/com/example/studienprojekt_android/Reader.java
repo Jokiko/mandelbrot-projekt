@@ -2,49 +2,69 @@
 
 package com.example.studienprojekt_android;
 
-import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.navigation.fragment.NavHostFragment;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Objects;
 
 public class Reader extends Fragment implements Runnable{
+    private final Connect connect;
+    private final FragmentActivity fragmentActivity;
+    private final FirstFragment firstFragment;
+    private final SecondFragment secondFragment;
+    private final CpuInfo cpuInfo;
+    private final TextView txtAnzClients;
 
-    TextView txtAnzClients;
+    private ArrayList<Object> taskList = new ArrayList<>();
 
-    private static BufferedReader is;
+    private boolean task;
+
+    private String packageComplete = "";
+    private int anzPackage = 0;
+    private int width = 0;
+    private int height = 0;
+    private String[] bytes = new String[]{"0"};
+
+    private static BufferedReader bufferedReader;
+    private static DataInputStream dataInputStream;
     private static Socket socket;
 
-    static Thread[] threads;
-    static Thread calculateThread;
-    ExecutorService executorService;
-    Executor[] executor;
-    Runnable[] runnable;
+    private int anzTask = 0;
 
-    static int moveX, moveY;
+    private static Thread plotPointsThread;
 
-    public static int anzClients;
-    static int count;
-    static int anzThreads;
-    private double factor;
-    private boolean calculate;
-    private String type;
-    private String currentType;
+    private Object taskObj = null;
+    private String response = null;
 
-    FragmentActivity activity;
+    private int anzClients;
+    private int anzRunning;
+    private int anzThreads;
 
+    // time measurement
+    long start;
+    long finish;
+    long timeElapsed;
+    long timeTotal;
+    int anzTotalPackage;
     ArrayList<Object> listTime = new ArrayList<>();
+
+    /************** Getter **************/
+    public int getAnzClients() {
+        return anzClients;
+    }
 
     //Used to load the 'native-lib library on application startup.
     static {
@@ -52,14 +72,23 @@ public class Reader extends Fragment implements Runnable{
     }
 
     /**
-     * Reader()
-     * @param s Socket
-     * @param fa FragmentActivity
+     * Constructor of {@code Reader}
+     * @param socket Socket
+     * @param fragmentActivity FragmentActivity
+     * @param txtAnzClients TextView
+     * @param firstFragment FirstFragment
+     * @param secondFragment SecondFragment
+     * @param cpuInfo CpuInfo
      */
-    Reader(Socket s, FragmentActivity fa, TextView textView){
-        socket = s;
-        activity = fa;
-        txtAnzClients = textView;
+    public Reader(Connect connect, Socket socket, FragmentActivity fragmentActivity, TextView txtAnzClients, FirstFragment firstFragment, SecondFragment secondFragment, CpuInfo cpuInfo){
+        this.connect = connect;
+        Reader.socket = socket;
+        this.fragmentActivity = fragmentActivity;
+        this.txtAnzClients = txtAnzClients;
+        this.firstFragment = firstFragment;
+        this.secondFragment = secondFragment;
+        this.cpuInfo = cpuInfo;
+        initializeNativeLib();
         Client.sendMessage("type", "Android");
     }
 
@@ -67,465 +96,253 @@ public class Reader extends Fragment implements Runnable{
      * receiveMessage()
      */
     private synchronized void receiveMessage(){
-        Log.d("main-thread", "Reader.receiveMessage(): " + (Looper.getMainLooper().getThread() == Thread.currentThread()));
         try {
-            is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            while(!SecondFragment.receiveThread.isInterrupted()) {
-            //while(!Client.receiveThread.isInterrupted()) {
-                Log.d("Response", "vor String response");
-                String response;
+            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            dataInputStream = new DataInputStream(socket.getInputStream());
+            while(!SecondFragment.getReceiveThread().isInterrupted()) {
                 try {
-                    response = is.readLine();
+                    if(!task){
+                        response = bufferedReader.readLine();
+                    }
                 } catch (NullPointerException e) {
                     response = null;
                     e.printStackTrace();
                 }
-                Log.d("Response", "" + response);
-                if (response != null) {
-                    String[] bytes = response.split("/.../");
-
-                    Log.d("Response (bytes[0])", bytes[0]);
+                //Log.d("Response", "response: " + response + "; taskObj != null: " + (taskObj != null));
+                if (response != null || taskObj != null) {
+                    if(response != null) {
+                        bytes = response.split("/.../");
+                    }
 
                     switch (bytes[0]) {
-// type
-                        case "type":
-                            Client.sendMessage("connect", FirstFragment.deviceName);
-                            FirstFragment.connected = true;
+// First contact successful
+                        case "First contact successful":
+                            typeMethod();
+                            break;
+// Connect success
+                        case "Connect success":
+                            connectSuccess(bytes[1], bytes[2]);
+                            break;
+// task
+                        case "task":
+                            task();
+                            break;
+// endTask
+                        case "end Task":
+                            endTask();
+                            break;
+// noTask
+                        case "noTask":
+                            noTask();
                             break;
 // anzClients
                         case "anzClients":
-                            anzClients = Integer.parseInt(bytes[1]);
-                            getAnzClients(anzClients);
-                            if(SecondFragment.viewCreated) {
-                                activity.runOnUiThread(new Thread(() -> {
-                                    //SecondFragment.txtAnzClients.setText("");
-                                    //SecondFragment.txtAnzClients.append("Number of Clients: " + anzClients);
-                                    txtAnzClients.setText("");
-                                    txtAnzClients.append("Number of Clients: " + anzClients);
-                                }));
-                            }
-                            if(CpuInfo.getNumCores() <= 4){
-                                anzThreads = 1;
-                            }else{
-                                anzThreads = (CpuInfo.getNumCores() - 4);
-                            }
-                            Log.d("executorService", "anzThreads: " + anzThreads);
-                            executorService = Executors.newFixedThreadPool(anzThreads);
-                            Log.d("executorService", "" + executorService);
-                            executor = new Executor[anzThreads];
-                            Log.d("executor", "" + Arrays.toString(executor));
-                            runnable = new Runnable[anzThreads];
-                            Log.d("runnable", "" + Arrays.toString(runnable));//*/
-                            break;
-// yourNumber
-                        case "yourNumber":
-                            getYourNumber(Integer.parseInt(bytes[1]));
-                            break;
-// size
-                        case "size":
-                            Log.d("Response", "size");
-                            int width = Integer.parseInt(bytes[1]);
-                            getWidth(width);
-                            Log.d("Width", "" + width);
-                            int height = Integer.parseInt(bytes[2]);
-                            getHeight(height);
-                            calculate = true;
-                            type = "plot";
-                            currentType = type;
-                            break;
-// pauseChange
-                        /*case "pauseChange":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }
-                            anzClients--;
-                            calculate = true;
-                            break;//*/
-// pause
-                        case "pause":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            calculate = false;
-                            type = "pause";
-                            break;
-// resumeChange
-                        /*case "resumeChange":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }
-                            anzClients++;
-                            calculate = true;
-                            SecondFragment.started = true;
-                            break;//*/
-// resume
-                        case "resume":
-                            calculate = true;
-                            SecondFragment.started = true;
-                            if(currentType.equals("restart")){
-                                type = "restartResume";
-                            }else {
-                                type = currentType;
-                            }
-                            break;
-// restart
-                        case "restart":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            SecondFragment.started = true;
-                            type = "restart";
-                            currentType = type;
-                            break;
-// rectangle
-                        case "rectangle":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            moveX = Integer.parseInt(bytes[1]);
-                            moveY = Integer.parseInt(bytes[2]);
-                            factor = Double.parseDouble(bytes[3]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "rectangle";
-                            currentType = type;
-                            break;
-// zoomIn
-                        case "zoomIn":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            factor = Double.parseDouble(bytes[1]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "zoomIn";
-                            currentType = type;
-                            break;
-// zoomOut
-                        case "zoomOut":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            factor = Double.parseDouble(bytes[1]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "zoomOut";
-                            currentType = type;
-                            break;
-// Up
-                        case "Up":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            factor = Double.parseDouble(bytes[1]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "Up";
-                            currentType = type;
-                            break;
-// Down
-                        case "Down":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            factor = Double.parseDouble(bytes[1]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "Down";
-                            currentType = type;
-                            break;
-// Left
-                        case "Left":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            factor = Double.parseDouble(bytes[1]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "Left";
-                            currentType = type;
-                            break;
-// Right
-                        case "Right":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            factor = Double.parseDouble(bytes[1]);
-                            calculate = true;
-                            SecondFragment.started = true;
-                            type = "Right";
-                            currentType = type;
+                            anzClientsMethod(bytes[1]);
                             break;
 // close
                         case "close":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            calculate = false;
-                            anzClients--;
-                            getAnzClients(anzClients);
-                            SecondFragment.quit();
-                            stopReader();
+                            closeMethod();
                             break;
 // disconnect
                         case "disconnect":
-                            if(threads != null) {
-                                for (int k = 0; k < anzThreads; k++) {
-                                    threads[k].interrupt();
-                                }
-                            }//*/
-                            if(calculateThread != null) {
-                                calculateThread.interrupt();
-                            }//*/
-                            FirstFragment.connected = false;
-                            anzClients = 0;
-                            getAnzClients(anzClients);
-                            SecondFragment.quit();
-                            stopReader();
+                            disconnectMethod();
                             break;
 // check
                         case "check":
-                            Client.sendMessage("check", "");
-                            //new Thread(() -> Client.sendMessage("check", "")).start();
+                            checkMethod();
                             break;
                         default:
-                            calculate = false;
                             break;
                     }
-                    if(threads != null){
-                        for(int k = 0; k < anzThreads; k++){
-                            getThreadInterrupted(threads[k].isInterrupted());
-                            Log.d("Threads", "threads[" + k + "]: " + threads[k].isInterrupted());
-                        }
-                    }//*/
-                    if(calculateThread != null) {
-                        getThreadInterrupted(calculateThread.isInterrupted());
-                    }//*/
-                    Log.d("Response", "calculate: " + calculate);
-                    if(calculate) {
-                        Log.d("anzThreads", "" + anzThreads);
-                        /*Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                for(int i = 0; i < anzThreads; i++){
-                                    count = i;
-                                    if(bytes[0].equals("rectangle")){
-                                        pointsPlotRectangle(type, factor, moveX, moveY, count, anzThreads);
-                                        Log.d("rectangle", moveX + ", " + moveY);
-                                    }else {
-                                        pointsPlot(type, factor, count, anzThreads);
-                                    }
-                                }
-                            }
-                        };
-                        executorService.execute(runnable);
-                        Log.d("executorService", "" + executorService);//*/
-
-                    //executor
-                        /*anzThreads = 2;
-                        for(int i = 0; i < anzThreads; i++){
-                            Log.d("executor_beginn", "i: " + i);
-                            executor[i] = new Executor() {
-                                @Override
-                                public void execute(Runnable runnable) {
-                                    new Thread(runnable).start();
-                                }
-                            };
-                            count = i;
-                            //runnable[i] = new Runnable() {
-                            executor[i].execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    long start = System.nanoTime();
-                                    if(bytes[0].equals("rectangle")){
-                                        pointsPlotRectangle(type, factor, moveX, moveY, count, anzThreads);
-                                        Log.d("rectangle", moveX + ", " + moveY);
-                                    }else {
-                                        pointsPlot(type, factor, count, anzThreads);
-                                    }
-                                    long finish = System.nanoTime();
-                                    long timeElapsed = finish - start;
-                                    Log.d("timeElapsed", "" + (timeElapsed/1000000000) + " sec");
-                                }
-                            });
-                            Log.d("executor_ende", "i: " + i);
-                        }
-                        for(int i = 0; i < anzThreads; i++){
-                            executor[i].execute(runnable[i]);
-                        }//*/
-
-                    //executorService
-                        /*ExecutorService executorService = Executors.newFixedThreadPool(anzThreads);
-                        executorService.execute(new Runnable(){
-                            @Override
-                            public void run(){
-                                //for(int count = 0; count < anzThreads; count++) {
-                                    int count = 0;
-                                    pointsPlot(type, factor, count, anzThreads);
-                                    Log.d("ThreadPool_", "count: " + count + "; " + executorService);
-                                //}
-                            }
-                        });///*/
-
-                    //calculateThread
-                        count = 0;
-                        anzThreads = 1;
-                        calculateThread = new Thread(() -> {
-                            long start = System.nanoTime();
-                            Log.d("calculateThread", "before plot(); " + type);
-                            getThreadInterrupted(calculateThread.isInterrupted());
-                            if(bytes[0].equals("rectangle")){
-                                pointsPlotRectangle(type, factor, moveX, moveY, count, anzThreads);
-                                Log.d("rectangle", moveX + ", " + moveY);
-                            }else {
-                                pointsPlot(type, factor, count, anzThreads);
-                            }
-                            long finish = System.nanoTime();
-                            long timeElapsed = finish - start;
-                            Log.d("timeElapsed", "" + (timeElapsed/1000000000) + " sec");
-                            //getThreadInterrupted(calculateThread.isInterrupted());
-                            Log.d("calculateThread", "after plot(); count: " + count);
-                        });
-                        calculateThread.start();
-                        SecondFragment.started = true;//*/
-
-                    //threads[]
-                        /*threads = new Thread[anzThreads];
-                        for(int i = 0; i < anzThreads; i++) {
-                            count = i;
-                            threads[i] = new Thread(() -> {
-                                long start = System.nanoTime();
-                                Log.d("calculateThread", "before plot(); " + type);
-                                //for(int k = 0; k < anzThreads; k++){
-                                //    getThreadInterrupted(threads[k].isInterrupted());
-                                //}
-                                if(bytes[0].equals("rectangle")){
-                                    pointsPlotRectangle(type, factor, moveX, moveY, count, anzThreads);
-                                    Log.d("rectangle", moveX + ", " + moveY);
-                                }else {
-                                    pointsPlot(type, factor, count, anzThreads);
-                                }
-                                //for(int k = 0; k < anzThreads; k++){
-                                //    getThreadInterrupted(threads[k].isInterrupted());
-                                //}
-                                Log.d("calculateThread", "after plot(); count: " + count);
-                                long finish = System.nanoTime();
-                                long timeElapsed = finish - start;
-                                Log.d("timeElapsed", "" + (timeElapsed/1000000000) + " sec");
-                                listTime.add(timeElapsed/1000000000);
-                            });
-                            threads[i].start();
-                            SecondFragment.started = true;
-                            Log.d("for-loop", "" + count);
-                        }
-                        for(int k = 0; k < anzThreads; k++){
-                            try {
-                                threads[k].join();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        long tempMax = (long) listTime.get(0);
-                        for(int k = 1; k < listTime.size(); k++){
-                            if(tempMax < (long) listTime.get(k)){
-                                tempMax = (long) listTime.get(k);
-                            }
-                        }
-                        listTime.clear();
-                        Log.d("timeElapsed", "tempMax: " + tempMax + " sec");//*/
-                    }
                 }else{
-                    Log.d("Server Error", "Connection lost");
-                    SecondFragment.quit();
-                    stopReader();
+                    Log.d("Server-Error", "Connection lost");
+                    quit();
                 }
             }
+            end();
+            quit();
         } catch (IOException ioe) {
-            Log.d("Server Error", "Connection lost");
-            SecondFragment.quit();
-            stopReader();
+            end();
+            quit();
             ioe.printStackTrace();
         }
     }
 
     /**
-     * stopReader()
+     * typeMethod()
      */
-    public static void stopReader() {
-        try {
-            SecondFragment.receiveThread.interrupt();
-            //Client.receiveThread.interrupt();
-            /*if(threads != null) {
-                for (Thread thread : threads) {
-                    thread.interrupt();
+    private void typeMethod() {
+        Client.sendMessage("connect");
+    }
+
+    /**
+     * connectSuccess()
+     * @param widthStr String
+     * @param heightStr String
+     */
+    private void connectSuccess(String widthStr, String heightStr){
+        Log.d("Response", "width: " + width + "; height: " + height);
+        width = Integer.parseInt(widthStr);
+        height = Integer.parseInt(heightStr);
+        getSize(width, height);
+    }
+
+    /**
+     * task()
+     */
+    private void task(){
+        getVariables();
+        task = true;
+    }
+
+    /**
+     * getVariables()
+     */
+    private void getVariables(){
+        if(task) {
+            Client.sendMessage("s");
+            if (anzTask == 0 || anzTask == 4) {
+                try {
+                    taskObj = dataInputStream.readInt();
+                    Log.d("taskObj", "int: " + taskObj);
+                }catch(IOException ioe){
+                    ioe.printStackTrace();
                 }
-            }//*/
-            is.close();
+            } else {
+                try{
+                    taskObj = dataInputStream.readDouble();
+                    Log.d("taskObj", "double: " + taskObj);
+                }catch(IOException ioe){
+                    ioe.printStackTrace();
+                }
+            }
+            taskList.add(taskObj);
+            if (anzTask == 4) {
+                response = "end Task/.../";
+            }
+            anzTask++;
+        }
+    }
+
+    /**
+     * endTask()
+     */
+    private void endTask(){
+        anzTask = 0;
+        task = false;
+        int y =  (int) taskList.get(0);
+        double xMove = (double) taskList.get(1);
+        double yMove = (double) taskList.get(2);
+        double zoom = (double) taskList.get(3);
+        //int itr = (int) taskList.get(4);
+        int itr = 200;
+        taskList.clear();
+
+        //plotPointsThread = new Thread(runPlotPoints(y, xMove, yMove, zoom ,itr));
+        //plotPointsThread.start();
+        /*if(!secondFragment.getStop() && !SecondFragment.getReceiveThread().isInterrupted()) {
+            start = System.nanoTime();
+            pointsPlot(y, xMove, yMove, zoom, itr);
+        }//*/
+    }
+
+    /**
+     * noTask()
+     */
+    private void noTask(){
+        if(!secondFragment.getStop()) {
+            timeTotal = 0;
+            anzTotalPackage = 0;
+            Client.sendMessage("task");
+        }
+    }
+
+    /**
+     * anzClientsMethod()
+     * @param string String
+     */
+    private void anzClientsMethod(String string) {
+        anzClients = Integer.parseInt(string);
+        if (anzClients > 1) {
+            if (plotPointsThread != null) {
+                plotPointsThread.interrupt();
+            }
+        }
+        if(secondFragment.getViewCreated()) {
+            fragmentActivity.runOnUiThread(new Thread(() -> {
+                txtAnzClients.setText("");
+                txtAnzClients.append("Clients: " + anzRunning + "/" + anzClients);
+            }));
+        }
+        if(cpuInfo.getNumCores() <= 4){
+            anzThreads = 1;
+        }else{
+            anzThreads = (cpuInfo.getNumCores() - 4);
+        }
+    }
+
+    /**
+     * closeMethod()
+     */
+    private void closeMethod() {
+        if(plotPointsThread != null) {
+            plotPointsThread.interrupt();
+        }
+        anzClients--;
+        if(secondFragment.getViewCreated()) {
+            fragmentActivity.runOnUiThread(new Thread(() -> {
+                txtAnzClients.setText("");
+                txtAnzClients.append("Clients: " + anzRunning + "/" + anzClients);
+            }));
+        }
+    }
+
+    /**
+     * disconnectMethod()
+     */
+    private void disconnectMethod() {
+        if(plotPointsThread != null) {
+            plotPointsThread.interrupt();
+        }
+        connect.setConnected(false);
+        anzClients = 0;
+        anzRunning = 0;
+        secondFragment.quit();
+        quit();
+    }
+
+    /**
+     * checkMethod()
+     */
+    private void checkMethod() {
+        Client.sendMessage("check");
+    }
+
+    /**
+     * end()
+     */
+    private void end(){
+        secondFragment.setStop(true);
+        secondFragment.setInterrupt(true);
+        secondFragment.quit();
+        task = false;
+    }
+
+    /**
+     * quit()
+     */
+    public static void quit() {
+        try {
+            SecondFragment.getReceiveThread().interrupt();
+            bufferedReader.close();
+            dataInputStream.close();
             socket.close();
+            if(plotPointsThread != null) {
+                plotPointsThread.interrupt();
+            }
         }catch(IOException e){
             e.printStackTrace();
         }
-        Log.d("Client stop", "stopReader()");
     }
 
     /**
@@ -533,33 +350,90 @@ public class Reader extends Fragment implements Runnable{
      */
     @Override
     public void run(){
-        Log.d("main-thread", "Reader.run(): " + (Looper.getMainLooper().getThread() == Thread.currentThread()));
         receiveMessage();
     }
 
     /**
-     * wird in C++ benötigt, um die berechneten Punkte an den Server zu schicken
-     * @param type String (unterschiedliche Typen, damit man in der Ausgabe besser unterscheiden kann was jetzt berechent wird)
-     * @param x int (x-Koordiante)
-     * @param y int (y-Koordinate)
-     * @param itr int (Farbwert)
+     * initializePackage()
+     * @param x int
+     * @param y int
+     * @param tmp int
      */
-    public void sendPlotPoints(String type, int x, int y, int itr){
-        Client.sendMessage(type, "" + x + "/.../" + y + "/.../" + itr);
+    public synchronized void initializePackage(int x, int y, int tmp){
+        if(!secondFragment.getStop()) {
+            //Log.d("Response", "initializePackage: " + x + ", " + y + ", " + tmp);
+            if(anzPackage != 0){
+                packageComplete += "\n";
+            }
+            packageComplete += "" + x;
+            packageComplete += "\n";
+            packageComplete += "" + y;
+            packageComplete += "\n";
+            packageComplete += "" + tmp;
+            //Log.d("Response", "anzPackage " + anzPackage +" < " + width);
+            /*if (anzPackage < width) {
+                packageComplete += "\n";
+            } else {
+                packageComplete += "\ntick";
+            }//*/
+            anzPackage++;
+        }
+    }
+
+    /**
+     * sendCompletePackage()
+     */
+    private synchronized void sendCompletePackage(){
+        if(!secondFragment.getStop()) {
+            //Log.d("Response", "sendCompletePackage: " + packageComplete);
+            packageComplete += "\ntick";
+            if (secondFragment.getStarted()) {
+                //packageComplete += "\ntask";
+            }
+            Client.sendMessage(packageComplete);
+            packageComplete = "";
+            anzPackage = 0;
+            secondFragment.setStop(secondFragment.getStop());
+        }
+    }
+
+    /**
+     * sendPlotPointsFinished()
+     */
+    public synchronized void sendPlotPointsFinished(){
+        if(!secondFragment.getStop()) {
+            sendCompletePackage();
+            finish = System.nanoTime();
+            timeElapsed = finish - start;
+            Log.d("plot", "Name: " + Thread.currentThread().getName() + "; timePackage: " + (timeElapsed / 1000000000.0) + " sec");
+            timeTotal += timeElapsed;
+            Log.d("plot", "Name: " + Thread.currentThread().getName() + "; timePackageTotal: " + (timeTotal / 1000000000.0) + " sec");
+            anzTotalPackage++;
+            Log.d("plot", "Name: " + Thread.currentThread().getName() + "; anzTotalPackage: " + anzTotalPackage);
+        }
+    }
+
+    /**
+     * runPlotPoints()
+     * @param y int
+     * @param xMove double
+     * @param yMove double
+     * @param zoom double
+     * @param itr int
+     * @return Runnable
+     */
+    private Runnable runPlotPoints(int y, double xMove, double yMove, double zoom, int itr){
+        return () -> pointsPlot(y, xMove, yMove, zoom, itr);
     }
 
     /**
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native void getWidth(int width);
-    public native void getHeight(int height);
-    public native void getYourNumber(int yourNumber);
-    public native void getAnzClients(int anzClients);
+    private native void initializeNativeLib();
 
-    public native void getThreadInterrupted(boolean interrupted);
+    private native void getSize(int width, int height);
 
-    public native void pointsPlot(String type, double factor, int count, int anzThreads);
-    public native void pointsPlotRectangle(String type, double factor, int moveX, int moveY, int count, int anzThreads);
+    private native void pointsPlot(int y, double MoveX, double MoveY, double zoom, int itr);
 }
 

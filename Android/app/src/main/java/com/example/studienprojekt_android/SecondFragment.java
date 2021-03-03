@@ -5,49 +5,91 @@ package com.example.studienprojekt_android;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 public class SecondFragment extends Fragment {
+    private final Object ob = new Object();
+    private final FirstFragment firstFragment = new FirstFragment();
+
+    private CpuInfo cpuInfo;
 
     //"second" screen
+    private Button btnStart, btnPause, btnQuit;
+    private TextView txtNetworkUsage, txtAnzThreads, txtAnzClients, txtStatus, txtName;
+    //private TextView txtCpuUsage, txtMemoryUsage, txtNetworkUsageSend, txtNetworkUsageRead;
     @SuppressLint("StaticFieldLeak")
     static TextView txtCpuUsage, txtMemoryUsage, txtNetworkUsageSend, txtNetworkUsageRead;
 
-    Button btnStart, btnPause, btnQuit;
-    TextView txtNetworkUsage, txtAnzThreads, txtAnzClients, txtStatus, txtName;
+    private static Connect connect;
+    private static Thread connectThread;
 
-    static boolean started;
+    private Reader reader;
 
-    Reader mReader;
-    static Thread receiveThread;
+    private static Thread receiveThread;
+    private static Thread[] receiveThreadArray = new Thread[2];
 
-    int anzThreads;
+    private int anzThreads;
 
-    //Fragment f;
+    private static boolean started;
+    private boolean viewCreated = false;
+    private boolean stop;
 
-    static boolean viewCreated = false;
+    private static String status = "";
+
+    /************** Getter **************/
+    public boolean getStop(){
+        return stop;
+    }
+    public boolean getViewCreated() {
+        return viewCreated;
+    }
+    public boolean getStarted() {
+        return started;
+    }
+    public String getStatus() {
+        return status;
+    }
+    public TextView getTxtCpuUsage() {
+        return txtCpuUsage;
+    }
+    public TextView getTxtMemoryUsage() {
+        return txtMemoryUsage;
+    }
+    public TextView getTxtNetworkUsageSend() {
+        return txtNetworkUsageSend;
+    }
+    public TextView getTxtNetworkUsageRead() {
+        return txtNetworkUsageRead;
+    }
+    public static Thread getReceiveThread() {
+        return receiveThread;
+    }
+    public Reader getReader(){
+        return reader;
+    }
+    public Object getObject(){
+        return ob;
+    }
+
+    /************** Setter **************/
+    public void setViewCreated(boolean viewCreated) {
+        this.viewCreated = viewCreated;
+    }
+    public void setStatus(String status){
+        SecondFragment.status = status;
+    }
 
     //Used to load the 'native-lib library on application startup.
     static {
         System.loadLibrary("native-lib");
-    }
-
-    /**
-     * quit()
-     */
-    public static void quit(){
-        started = false;
-        FirstFragment.end();
-        endCalculation();
     }
 
     /**
@@ -60,7 +102,6 @@ public class SecondFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         requireActivity().setTitle("Mandelbrot Second Fragment");
-        //f = SecondFragment.this;
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.second_fragment, container, false);
@@ -75,8 +116,22 @@ public class SecondFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        FirstFragment.getFragment(SecondFragment.this);
+        cpuInfo = firstFragment.getCpuInfo();
 
+        initializeView(view);
+
+        initializeReader();
+
+        initializeButton();
+
+        viewCreated = true;
+    }
+
+    /**
+     * initializeView()
+     * @param view View
+     */
+    private void initializeView(View view){
         btnStart = view.findViewById(R.id.btnStart);
         btnPause = view.findViewById(R.id.btnPause);
         btnQuit = view.findViewById(R.id.btnQuit);
@@ -90,18 +145,17 @@ public class SecondFragment extends Fragment {
         txtAnzThreads = view.findViewById(R.id.txtAnzThreads);
         txtAnzClients = view.findViewById(R.id.txtAnzClients);
 
-        if(!viewCreated) {
-            txtAnzClients.setText(getString(R.string.number_clients));
-            txtAnzClients.append(" " + Reader.anzClients);
-        }
+        setAnzThreads();
+        setDeviceName();
+        txtStatus.setText(R.string.no_calculation_running);
+    }
 
-        mReader = new Reader(Client.socket, getActivity(), txtAnzClients);
-        receiveThread = new Thread(mReader);
-        receiveThread.start();
-        Log.d("Reader","Reader.run()");
-
+    /**
+     * setDeviceName()
+     */
+    private void setDeviceName(){
         String deviceName;
-        String[] bytes = FirstFragment.deviceName.split("/../");
+        String[] bytes = firstFragment.getDeviceName().split("/../");
         if(bytes.length == 1){
             deviceName = bytes[0];
         }else {
@@ -109,23 +163,50 @@ public class SecondFragment extends Fragment {
         }
         txtName.setText(R.string.device_name_str);
         txtName.append("\n" + deviceName);
+    }
 
-        txtStatus.setText(R.string.no_calculation_running);
-
-        Log.d("getNumCores", "" + CpuInfo.getNumCores());
-        if(CpuInfo.getNumCores() <= 4){
+    /**
+     * setAnzThreads()
+     */
+    private void setAnzThreads(){
+        if(cpuInfo.getNumCores() <= 4){
             anzThreads = 1;
         }else{
-            anzThreads = (CpuInfo.getNumCores() - 4);
+            anzThreads = (cpuInfo.getNumCores() - 4);
         }
         txtAnzThreads.append(" " + anzThreads);
-        Log.d("AnzThreads", "" + anzThreads);
+    }
 
+    /**
+     * initializeReader()
+     */
+    private void initializeReader(){
+        reader = new Reader(firstFragment.getConnect(), Client.getSocket(), getActivity(), txtAnzClients, firstFragment, SecondFragment.this, cpuInfo);
+        receiveThread = new Thread(reader);
+        receiveThread.setName("receiveThread_" + receiveThread.getId());
+        receiveThread.start();
+        setInterrupt(receiveThread.isInterrupted());
+    }
+
+    /**
+     * initializeButton()
+     */
+    private void initializeButton(){
+        startButton();
+        pauseButton();
+        quitButton();
+    }
+
+    /**
+     * startButton()
+     */
+    private void startButton(){
         btnStart.setOnClickListener(v -> {
+            stop = false;
+            setStop(stop);
             if(btnStart.getText().equals("Start")) {
                 if(!started) {
-                    Client.sendMessage("start", "");
-                    startCalculation();
+                    Client.sendMessage("task");
                     txtStatus.setText(R.string.calculation_started);
                     started = true;
                     btnStart.setText(R.string.running);
@@ -136,9 +217,8 @@ public class SecondFragment extends Fragment {
                 }else {
                     if (!started) {
                         btnPause.setText(R.string.pause);
-                        Client.sendMessage("resume", "");
+                        Client.sendMessage("task");
                         txtStatus.setText(R.string.calculation_resumed);
-                        resumeCalculation();
                         started = true;
                         btnStart.setText(R.string.running);
                     } else {
@@ -147,13 +227,17 @@ public class SecondFragment extends Fragment {
                 }
             }
         });
+    }
 
+    /**
+     * pauseButton()
+     */
+    private void pauseButton(){
         btnPause.setOnClickListener(v -> {
-            Log.d("btnPause" , "started: " + started);
+            //stop = true;
+            //setStop(stop);
             if(started) {
                 btnPause.setText(R.string.paused);
-                Client.sendMessage("pause", "");
-                pauseCalculation();
                 txtStatus.setText(R.string.calculation_paused);
                 btnStart.setText(R.string.resume);
                 started = false;
@@ -161,38 +245,48 @@ public class SecondFragment extends Fragment {
                 txtStatus.setText(R.string.no_calculation_running);
             }
         });
+    }
 
-        btnQuit.setOnClickListener(view1 -> {
+    /**
+     * quitButton()
+     */
+    private void quitButton(){
+        btnQuit.setOnClickListener(v -> {
             if(started) {
                 AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
                 alertDialog.setTitle("Warning");
                 alertDialog.setMessage("You are about to quit the calculation.\nContinue?");
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "YES",
                         (dialog, which) -> {
-                            Client.sendMessage("close", FirstFragment.deviceName);
+                            Client.sendMessage("close", firstFragment.getDeviceName());
+                            status = "user has clicked quit";
                             quit();
                             dialog.dismiss();
-                            NavHostFragment.findNavController(SecondFragment.this)
-                                    .navigate(R.id.action_secondFragment_to_firstFragment);
-                            FirstFragment.currentFragment = "firstFragment";
-                            FirstFragment.quit = true;
-                            viewCreated = false;
                         });
                 alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO",
                         (dialog, which) -> dialog.dismiss());
                 alertDialog.show();
             }else{
-                Client.sendMessage("close", FirstFragment.deviceName);
-                FirstFragment.end();
-                NavHostFragment.findNavController(SecondFragment.this)
-                        .navigate(R.id.action_secondFragment_to_firstFragment);
-                FirstFragment.currentFragment = "firstFragment";
-                FirstFragment.quit = true;
-                viewCreated = false;
+                Client.sendMessage("close", firstFragment.getDeviceName());
+                status = "user has clicked quit";
+                quit();
             }
+            setStop(stop);
+            setInterrupt(receiveThread.isInterrupted());
         });
+    }
 
-        viewCreated = true;
+    /**
+     * quit()
+     */
+    public void quit(){
+        firstFragment.setCurrentFragment("firstFragment");
+        firstFragment.setQuit(true);
+        viewCreated = false;
+        stop = true;
+        receiveThread.interrupt();
+        started = false;
+        firstFragment.quit();
     }
 
 
@@ -200,9 +294,8 @@ public class SecondFragment extends Fragment {
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native void startCalculation();
-    public static native void pauseCalculation();
-    public native void resumeCalculation();
-    public static native void endCalculation();
+    public native void setStop(boolean stop);
+
+    public native void setInterrupt(boolean interrupt);
 }
 
