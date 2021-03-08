@@ -2,6 +2,8 @@ package src.Server;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.StringTokenizer;
@@ -30,6 +32,12 @@ public class WebsocketThread implements Runnable {
 
     private boolean disconnected;
     private boolean connected;
+
+    private int x = 0;
+    private int y = 0;
+    private int itr = 0;
+    private int failsafe;
+    private int plotCount = 0;
 
     public WebsocketThread(Socket socket, Server server) {
 
@@ -145,60 +153,86 @@ public class WebsocketThread implements Runnable {
             System.out.println("Error in serverThreadWebSocket");
         }
         String line = null;
-        String[] stringBytes;
-        int length;
-        int buffLength = 1024;
-        byte[] b = new byte[buffLength];
+        byte[] b = new byte[8000];//incoming buffer
+        byte[] message =null;//buffer to assemble message in
+        byte[] masks = new byte[4];
+        boolean isSplit=false;//has a message been split over a read
+        int length = 0; //length of message
+        int totalRead =0; //total read in message so far
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                //Laenge der erhaltenen verschlüsselten Nachricht
-                length = is.read(b); //blockt
-
-                //Dekodierung der WebSocket Nachricht
-                if (length != -1) {
-                    byte rLength;
-                    int rMaskIndex = 2;
-                    int rDataStart;
-                    //Hier fehlt eventuell noch ein Check, ob b[0] etwas anderes als Text ist.
-                    byte data = b[1];
-                    byte op = (byte) 127;
-                    //Check, wo die Laenge geschrieben ist, wenn <=125 dann ist das die Laenge
-                    rLength = (byte) (data & op);
-                    //wenn 126, dann steht in den naechsten 16 bit die Laenge
-                    if (rLength == (byte) 126) rMaskIndex = 4;
-                    //wenn 127, dann steht in den naechsten 64 bit die Laenge
-                    if (rLength == (byte) 127) rMaskIndex = 10;
-
-                    //auf die Laenge folgt ein 4 bit langer mask key, der zum dekodieren benoetigt wird
-                    byte[] masks = new byte[4];
-
-                    int j = 0;
-                    int i;
-                    for (i = rMaskIndex; i < (rMaskIndex + 4); i++) {
-                        masks[j] = b[i];
-                        j++;
-                    }
-
-                    //auf den masking key folgen die verschluesselten Daten
-                    rDataStart = rMaskIndex + 4;
-
-                    int messLen = length - rDataStart;
-
-                    byte[] message = new byte[messLen];
-
-                    //Entschluesslung der Daten
-                    for (i = rDataStart, j = 0; i < length; i++, j++) {
-                        message[j] = (byte) (b[i] ^ masks[j % 4]);
-                    }
-
-                    line = new String(message, StandardCharsets.UTF_8);
-                    b = new byte[buffLength];
+                int len = 0;//length of bytes read from socket
+                try {
+                    len = is.read(b);
+                } catch (IOException e) {
+                    break;
                 }
-                token = new StringTokenizer(line, "/.../");
-                compare = token.nextElement().toString();
-                System.out.println(compare);
+                if (len != -1) {
+                    boolean more = false;
+                    int totalLength = 0;
+                    do {
+                        int j = 0;
+                        int i = 0;
+                        if (!isSplit) {
+                            byte rLength = 0;
+                            int rMaskIndex = 2;
+                            int rDataStart = 0;
+                            // b[0] assuming text
+                            byte data = b[1];
+                            byte op = (byte) 127;
+                            rLength = (byte) (data & op);
+                            length = (int) rLength;
+                            if (rLength == (byte) 126) {
+                                rMaskIndex = 4;
+                                length = Byte.toUnsignedInt(b[2]) << 8;
+                                length += Byte.toUnsignedInt(b[3]);
+                            } else if (rLength == (byte) 127)
+                                rMaskIndex = 10;
+                            for (i = rMaskIndex; i < (rMaskIndex + 4); i++) {
+                                masks[j] = b[i];
+                                j++;
+                            }
 
-                switch (compare) {
+                            rDataStart = rMaskIndex + 4;
+
+                            message = new byte[length];
+                            totalLength = length + rDataStart;
+                            for (i = rDataStart, totalRead = 0; i<len && i < totalLength; i++, totalRead++) {
+                                message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
+                            }
+
+
+                        }else {
+                            for (i = 0; i<len && totalRead<length; i++, totalRead++) {
+                                message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
+                            }
+                            totalLength=i;
+                        }
+
+
+                        if (totalRead<length) {
+                            isSplit=true;
+                        }else {
+                            isSplit=false;
+                            //System.out.println(new String(message));
+                            line = new String(message,  StandardCharsets.UTF_8);
+                            b = new byte[8000];
+                        }
+
+                        if (totalLength < len) {
+                            more = true;
+                            for (i = totalLength, j = 0; i < len; i++, j++)
+                                b[j] = b[i];
+                            len = len - totalLength;
+                        }else
+                            more = false;
+                    } while (more);
+                } else
+                    break;
+
+                System.out.println(line);
+
+                switch (line) {
                     case "connect":
                         connect();
                         break;
@@ -211,6 +245,11 @@ public class WebsocketThread implements Runnable {
                     case "frame":
                         fm.stop();
                         System.out.println("Total time frame (real): " + fm.getResult());
+                        break;
+                    case "s":
+                        return;
+                    case "plot":
+                        plotCount = 1;
                         break;
                     default:
                         plot(line);
@@ -249,23 +288,63 @@ public class WebsocketThread implements Runnable {
             return;
         }
         sendMessage("task");
-        sendMessage(task.getY());
-        sendMessage(task.getxMove());
-        sendMessage(task.getyMove());
-        sendMessage(task.getZoom());
-        sendMessage(task.getItr());
+        int getY =  ByteBuffer.wrap(task.getY()).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        sendMessage(String.valueOf(getY));
+        receiveMessage();
+        double xMove =  ByteBuffer.wrap(task.getxMove()).order(ByteOrder.LITTLE_ENDIAN).getDouble();
+        sendMessage(String.valueOf(xMove));
+        receiveMessage();
+        double yMove = ByteBuffer.wrap(task.getyMove()).order(ByteOrder.LITTLE_ENDIAN).getDouble();
+        sendMessage(String.valueOf(yMove));
+        receiveMessage();
+        double zoom = ByteBuffer.wrap(task.getZoom()).order(ByteOrder.LITTLE_ENDIAN).getDouble();
+        sendMessage(String.valueOf(zoom));
+        receiveMessage();
+        int itr = ByteBuffer.wrap(task.getItr()).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        System.out.println("Iterationen: "+ itr);
+        sendMessage(String.valueOf(itr));
 
     }
 
     private void plot(String compare) throws IOException {
-        int x;
-        int y;
-        int itr;
         int colorItr = 20;
-        x = Integer.parseInt(compare);
-        y = Integer.parseInt(reader.readLine());
-        itr = Integer.parseInt(reader.readLine());
-        server.setRGB(x, y, itr | (itr << colorItr));
+        if(compare.equals("")){
+            switch(plotCount) {
+                case 1:
+                    if(x < 499) x++;
+                    else x = 0;
+                    System.out.println("Schummel x bei: " + x);
+                    plotCount++;
+                    break;
+                case 2:
+                    if(x == 0) y++;
+                    System.out.println("Schummel y bei: " + y);
+                    plotCount++;
+                    break;
+                case 3:
+                    System.out.println("failsafe ist: "+ failsafe);
+                    server.setRGB(x, y, failsafe | (failsafe << colorItr));
+                    plotCount = 0;
+            }
+            return;
+        }
+        switch(plotCount) {
+            case 1:
+                x = Integer.parseInt(compare);
+                plotCount++;
+                break;
+            case 2:
+                y = Integer.parseInt(compare);
+                plotCount++;
+                break;
+
+            case 3:
+                itr = Integer.parseInt(compare);
+                failsafe = itr;
+                server.setRGB(x, y, itr | (itr << colorItr));
+                plotCount = 0;
+
+        }
         bm.stop();
     }
 

@@ -7,11 +7,17 @@
       <script>
 		
 		//Variablen fuer Berechnung der Mandelbrotmenge
-		var width;
-		var height;
-		var anzClients;
-		var myNumber;
+		var width = 500;
+		var height = 500;
 		var iterations = 50;
+		var task = 0;
+		
+		var getY = 0;
+		var xMove;
+		var yMove;
+		var zoom;
+		
+		var buffer;
 	  
 		//Import der Mandelbrotfunktion aus dem WebAssembly Modul
 		let mandelbrot;
@@ -20,21 +26,35 @@
 		.then(mod => WebAssembly.compile(mod))
 		.then(module => {return new WebAssembly.Instance(module) })
 		.then(instance => {
-			mandelbrot = instance.exports._Z4plotiiiii;
+			mandelbrot = instance.exports._Z4plotiiiidddi;
 		});
+		
+
+		//Byte Array Auslesen
+		/*
+		function intFromBytes(arr){
+			var value;
+			for (var i = 0; i < arr.length; i++) {
+				value |= arr[i] >> 8*i;
+			}
+			return value;
+		}*/
+		
+		
+		
 	  
 		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
 		//var socket = new WebSocket('ws://localhost:5000');
-		var socket = new WebSocket('ws://169.254.108.186:5000');
+		//var socket = new WebSocket('ws://169.254.108.186:5000');
+		var socket = new WebSocket('ws://136.199.4.109:5000');
 	  
 		//Funktion bei Verbindungsaufbau
 		socket.onopen = function (){
 			console.log("Verbindung aufgebaut.\n");
 			//Sendet Server Nachricht
-			for (i = 0; i < 1; i++) { 
 			//socket.send("Ping\n"); 
-			socket.send("connect/.../abc");
-			}
+			socket.send("connect");
+			
 			socket.send("task");
 		};
 		
@@ -50,43 +70,67 @@
 			//socket.send(messageEvent.data.toUpperCase());
 			var str = messageEvent.data;
 			var res = str.split("/.../");
-			//Uebermittlung der Gesamtanzahl an Clients
-			if(res[0] === "anzRunning"){
-				anzClients = res[1];
-				console.log("Anzahl an Clients: " + anzClients);
-			}
-			//Uebermittlung der Client-Nummer
-			if(res[0] === "yourNumber"){
-				myNumber = res[1];
-				console.log("Ich bin Client Nr. " + myNumber);
-				//Aufforderung, die Masse zu uebergeben
-				socket.send("start/.../"+myNumber);
-			}
-			//Uebermittlung der Iterationsanzahl
-			if(res[0] === "iterations"){
-				iterations = res[1];
-				console.log("Anzahl der Iterationen: " + iterations);
-			}
-			//Uebermittlung der Groesse des zu berechnenden Anteils, damit kann Berechnung beginnen
-			if(res[0] === "size"){
-				width = res[1];
-				height = res[2];
-				console.log("Erhalte Groesse: " + width + "x" + height);
-				//Timing vorher
-				var t0 = performance.now();
-				//Berechnung Mandelbrotmenge
-				for(var y = 0; y < height; y++){
+			
+			
+			//Byte Array-Test
+			/*var byteArray = [];
+			for (var i = 0; i < messageEvent.data.length; ++i) {
+				byteArray.push(messageEvent.data.charCodeAt(i))
+			}*/
+			
+			//Task entgegennehmen
+			switch (task){
+				case 1:
+					//getY = bin2String(messageEvent.data);
+					//getY = intFromBytes(messageEvent.data);		
+					getY = messageEvent.data;
+					socket.send("s");
+					task++;
+					break;
+				case 2:
+					xMove = messageEvent.data;
+					socket.send("s");
+					task++;
+					break;
+				case 3:
+					yMove = messageEvent.data;
+					socket.send("s");
+					task++;
+					break;
+				case 4:
+					zoom = messageEvent.data;
+					socket.send("s");
+					task++;
+					break;
+				case 5:
+					iterations = messageEvent.data;
+					console.log("Task mit Y: "+ getY +", xMove: " + xMove + ", yMove: " + yMove + ", zoom: " + zoom + ", iterations: " + iterations);
 					for(var x = 0; x < width; x++){
 						//Wert der Mandelbrotmenge durch importiertes WebAssembly Modul
-						var erg = mandelbrot(x, y, width, height, iterations);
-						//console.log("x: "+x+", y: "+y+", itr: "+erg);
-						socket.send("plot/.../"+x+"/.../"+y+"/.../"+erg);
+						var erg = mandelbrot(x, getY, width, height, xMove, yMove, zoom, iterations);
+						console.log("erg: " + erg);
+						socket.send("plot");
+						socket.send(x);
+						socket.send(getY);
+						socket.send(erg);
 					}
-				}
-				//Timing nachher
+					task = 0;
+					socket.send("tick");
+					socket.send("task");
+					break;
+			}
+			switch (res[0]){
+			case "task":
+				console.log("Task entgegen genommen");
+				task++;
+				break;
+			}
+			
+			/*
+				var t0 = performance.now();
 				var t1 = performance.now();
 				console.log("Berechnung dauerte " + (t1 - t0) + " Millisekunden.");
-			}
+			*/
 		};
 		
 		socket.onclose = function(closeEvent){
