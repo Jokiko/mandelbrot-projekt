@@ -79,15 +79,12 @@ public class AndroidSocketThread implements Runnable {
 
         try {
             while (((input = (bufferedReader.readLine())) != null) && !Thread.currentThread().isInterrupted()) {
-                System.out.println("input (vor): " + input);
+                //System.out.println("input (vor): " + input);
 
                 bm.start();
                 fm.start();
                 token = new StringTokenizer(input, "/.../");
                 compare = token.nextElement().toString();
-
-                //System.out.println("input: " + input);
-                //System.out.println("compare: " + compare);
 
                 switch (compare) {
                     case "connect":
@@ -108,9 +105,7 @@ public class AndroidSocketThread implements Runnable {
                     case "s":
                         return;
                     default:
-                        System.out.println("plot---------------------------------------------------------plot");
                         plot(input);
-                        System.out.println("plot---------------------------------------------------------plot");
                 }
             }
 
@@ -155,36 +150,27 @@ public class AndroidSocketThread implements Runnable {
         receiveMessage();
 
         int y = java.nio.ByteBuffer.wrap(task.getY()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
-        //System.out.println("getY: " + y);
         sendMessage(y);
 
         receiveMessage();
 
         double xMove = java.nio.ByteBuffer.wrap(task.getxMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        //System.out.println("getxMove: " + xMove);
         sendMessage(xMove);
 
         receiveMessage();
 
         double yMove = java.nio.ByteBuffer.wrap(task.getyMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        //System.out.println("getyMove: " + yMove);
         sendMessage(yMove);
 
         receiveMessage();
 
         double zoom = java.nio.ByteBuffer.wrap(task.getZoom()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        //System.out.println("getZoom: " + zoom);
         sendMessage(zoom);
 
         receiveMessage();
 
         int itr = java.nio.ByteBuffer.wrap(task.getItr()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
-        //System.out.println("getItr: " + itr);
         sendMessage(itr);
-
-        receiveMessage();
-
-        //sendMessage("end Task");//*/
     }
 
     private void plot(String compare) throws IOException {
@@ -195,8 +181,8 @@ public class AndroidSocketThread implements Runnable {
         y = Integer.parseInt(bufferedReader.readLine());
         itr = Integer.parseInt(bufferedReader.readLine());
 
+        //System.out.println("x: " + x + ", y: " + y + "; itr: " + itr);
         server.setRGB(x, y, itr);
-		System.out.println("x: " + x + "; y: " + y + "; itr: " + itr);
         bm.stop();
     }
 
@@ -220,7 +206,7 @@ public class AndroidSocketThread implements Runnable {
 
         if (!disconnected)
             disconnect();
-        System.out.println("ServerThread beendet");
+        System.out.println(Thread.currentThread().getName() + " beendet");
 
     }
 }
