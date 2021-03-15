@@ -1,10 +1,6 @@
 package src.Server;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteOrder;
 import java.util.StringTokenizer;
@@ -83,7 +79,7 @@ public class AndroidSocketThread implements Runnable {
 
                 bm.start();
                 fm.start();
-                token = new StringTokenizer(input, "/.../");
+                token = new StringTokenizer(input, "/.");
                 compare = token.nextElement().toString();
 
                 switch (compare) {
@@ -149,28 +145,28 @@ public class AndroidSocketThread implements Runnable {
 
         receiveMessage();
 
-        int y = java.nio.ByteBuffer.wrap(task.getY()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
-        sendMessage(y);
+        //int y = java.nio.ByteBuffer.wrap(task.getY()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
+        sendMessage(task.getY());
 
         receiveMessage();
 
-        double xMove = java.nio.ByteBuffer.wrap(task.getxMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        sendMessage(xMove);
+        //double xMove = java.nio.ByteBuffer.wrap(task.getxMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
+        sendMessage(task.getxMove());
 
         receiveMessage();
 
-        double yMove = java.nio.ByteBuffer.wrap(task.getyMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        sendMessage(yMove);
+        //double yMove = java.nio.ByteBuffer.wrap(task.getyMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
+        sendMessage(task.getyMove());
 
         receiveMessage();
 
-        double zoom = java.nio.ByteBuffer.wrap(task.getZoom()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        sendMessage(zoom);
+        //double zoom = java.nio.ByteBuffer.wrap(task.getZoom()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
+        sendMessage(task.getZoom());
 
         receiveMessage();
 
-        int itr = java.nio.ByteBuffer.wrap(task.getItr()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
-        sendMessage(itr);
+        //int itr = java.nio.ByteBuffer.wrap(task.getItr()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
+        sendMessage(task.getItr());
     }
 
     private void plot(String compare) throws IOException {

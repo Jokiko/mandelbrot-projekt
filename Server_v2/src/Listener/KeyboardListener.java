@@ -45,10 +45,10 @@ public class KeyboardListener implements KeyListener {
 
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_MINUS:
-			server.zoomOut(0.05);
+			//server.zoomOut(0.05);
 			break;
 		case KeyEvent.VK_PLUS:
-			server.zoomIn(0.05);
+			//server.zoomIn(0.05);
 			break;
 		case KeyEvent.VK_LEFT:
 			server.moveX(-2);

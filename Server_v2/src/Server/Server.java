@@ -12,6 +12,7 @@ import src.Mandelbrot.TaskBuilder;
 import src.View.ServerView;
 
 public class Server {
+	private JLabel number_iterations;
 
 	/* Used to build TCP connection */
 	
@@ -47,6 +48,17 @@ public class Server {
 	}
 	public int getConnected() {
 		return connected;
+	}
+	public JLabel getNumberIterations(){
+		return number_iterations;
+	}
+	public ServerView getServerView(){
+		return userInterface;
+	}
+
+	/******** Setter ********/
+	public void setNumberIterations(JLabel number_iterations){
+		this.number_iterations = number_iterations;
 	}
 
 	/**
@@ -133,8 +145,8 @@ public class Server {
 	 */
 	private int[] setResolution(){
 		int[] resolution = {0, 0};
-		JTextField widthField = new JTextField(5);
-		JTextField heightField = new JTextField(5);
+		JTextField widthField = new JTextField( "500", 5);
+		JTextField heightField = new JTextField("500", 5);
 
 		JPanel myPanel = new JPanel();
 		myPanel.add(new JLabel("Width:"));
@@ -144,25 +156,13 @@ public class Server {
 		myPanel.add(heightField);
 
 		int result = JOptionPane.showConfirmDialog(null, myPanel,
-				"Enter Resolution (no input: 1000x1000)", JOptionPane.OK_CANCEL_OPTION);
+				"Enter Resolution", JOptionPane.OK_CANCEL_OPTION);
 		if (result == JOptionPane.OK_OPTION) {
 			try {
-				if (widthField.getText().equals("")) {
-					System.out.println("Width value (no input): 1000");
-					//TODO anpassen
-					resolution[0] = 500;
-				} else {
-					resolution[0] = Integer.parseInt(widthField.getText());
-					System.out.println("Width value: " + resolution[0]);
-				}
-				if (heightField.getText().equals("")) {
-					System.out.println("Height value (no input): 1000");
-					//TODO anpassen
-					resolution[1] = 500;
-				} else {
-					resolution[1] = Integer.parseInt(heightField.getText());
-					System.out.println("Height value: " + resolution[1]);
-				}
+				resolution[0] = Integer.parseInt(widthField.getText());
+				System.out.println("Width value: " + resolution[0]);
+				resolution[1] = Integer.parseInt(heightField.getText());
+				System.out.println("Height value: " + resolution[1]);
 				if(resolution[0] <= 0 || resolution[1] <= 0){
 					JOptionPane.showOptionDialog(null, "Width (" + resolution[0] + ") and height (" + resolution[1] + ") \ncannot be <= 0", "ERROR",
 							JOptionPane.YES_NO_OPTION,
@@ -178,8 +178,6 @@ public class Server {
 		}else{
 			System.out.println("Cancel");
 			System.exit(1);
-			//System.out.println("Cancel means resolution stands at 1000x1000");
-			//resolution[0] = resolution[1] = 1000;
 		}
 		return resolution;
 	}
@@ -216,7 +214,7 @@ public class Server {
 
 		int width = userInterface.getMandelbrotWidth();
 		int height = userInterface.getMandelbrotHeight();
-		taskbuilder = new TaskBuilder(width, height);
+		taskbuilder = new TaskBuilder(this, width, height);
 
 	}
 

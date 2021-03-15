@@ -4,7 +4,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import src.Mandelbrot.TaskBuilder;
 import src.Panels.MandelbrotPanel;
 import src.Server.Server;
 
@@ -84,17 +83,20 @@ public class MandelbrotMouseListener extends MouseAdapter {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (!canceled && server.getConnected() > 0) {
-			
+
+			if((((mWidth / (rectWidth * 1.0)) + (mHeight / (rectHeight * 1.0))) / 2.0) !=  Double.POSITIVE_INFINITY) {
+
+				factorX = (middleRectX - (mWidth / 2.0));
+				factorY = (middleRectY - (mHeight / 2.0));
+
+				server.moveX(factorX);
+				server.moveY(factorY);
+
+				server.zoomIn(((mWidth / (rectWidth * 1.0)) + (mHeight / (rectHeight * 1.0))) / 2.0);
+
+			}
 			mandelbrotPanel.setRectangle(0, 0, 0, 0);
 			mandelbrotPanel.setRectangleX(0, 0);
-
-			factorX = (middleRectX - (mWidth / 2.0));
-			factorY = (middleRectY - (mHeight / 2.0));
-
-			server.moveX(factorX);
-			server.moveY(factorY);
-
-			server.zoomIn(((mWidth / (rectWidth * 1.0)) + (mHeight / (rectHeight * 1.0))) / 2.0);
 
 		}
 	}

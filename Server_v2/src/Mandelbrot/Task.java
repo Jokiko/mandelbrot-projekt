@@ -5,38 +5,39 @@ import java.nio.ByteOrder;
 
 public class Task {
 
-	byte[] y_bytes;
-	byte[] xMove_bytes;
-	byte[] yMove_bytes;
-	byte[] zoom_bytes;
-	byte[] iteration;
+	int y;
+	double xMove;
+	double yMove;
+	double zoom;
+	int iteration;
 
-	public Task(int y, double xMove, double yMove, double zoom, int itr) {
+	public Task(int y, double xMove, double yMove, double zoom, int iteration) {
 
-		y_bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(y).array();
-		xMove_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(xMove).array();
-		yMove_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(yMove).array();
-		zoom_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(zoom).array();
-		iteration = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(itr).array();
+		this.y = y;
+		this.xMove = xMove;
+		this.yMove = yMove;
+		this.zoom = zoom;
+		this.iteration = iteration;
+
 	}
 
-	public byte[] getY() {
-		return y_bytes;
+	public int getY() {
+		return y;
 	}
 
-	public byte[] getxMove() {
-		return xMove_bytes;
+	public double getxMove() {
+		return xMove;
 	}
 
-	public byte[] getyMove() {
-		return yMove_bytes;
+	public double getyMove() {
+		return yMove;
 	}
 
-	public byte[] getZoom() {
-		return zoom_bytes;
+	public double getZoom() {
+		return zoom;
 	}
 
-	public byte[] getItr() {
+	public int  getItr() {
 		return iteration;
 	}
 

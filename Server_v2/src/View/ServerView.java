@@ -111,7 +111,6 @@ public class ServerView extends JFrame {
 	/*
 	 * Determines how big a GridBagLayout cell is (panel_width / grid_width =
 	 * cell_width) (panel_height / grid_height = cell_height)
-	 * 
 	 */
 	private final int GRID_WIDTH = 100;
 	private final int GRID_HEIGHT = 100;
@@ -122,6 +121,9 @@ public class ServerView extends JFrame {
 	}
 	public int getMANDELBROT_PANEL_HEIGHT() {
 		return MANDELBROT_PANEL_HEIGHT;
+	}
+	public MandelbrotPanel getMandelbrotPanel(){
+		return mandelbrotPanel;
 	}
 
 	/**
@@ -166,7 +168,7 @@ public class ServerView extends JFrame {
 		contentPanel = new ContentPanel(FRAME_WIDTH, FRAME_HEIGHT);
 		mandelbrotPanel = new MandelbrotPanel(MANDELBROT_PANEL_WIDTH, MANDELBROT_PANEL_HEIGHT);
 		buttonPanel = new ButtonPanel(BUTTON_PANEL_WIDTH, BUTTON_PANEL_HEIGHT);
-		monitorPanel = new MonitorPanel(MONITOR_PANEL_WIDTH, MONITOR_PANEL_HEIGHT);
+		monitorPanel = new MonitorPanel(server, MONITOR_PANEL_WIDTH, MONITOR_PANEL_HEIGHT);
 
 		buttonListener = new ButtonListener(server);
 		keyboardListener = new KeyboardListener(server);
@@ -258,6 +260,14 @@ public class ServerView extends JFrame {
 
 	public void setNumberOfClients(int number) {
 		monitorPanel.setNumberOfClients(number);
+	}
+
+	public void setPackagesPerSecond(int packages) {
+		monitorPanel.setPackagesPerSecond(packages);
+	}
+
+	public void setFPS(double d) {
+		monitorPanel.setFPS(d);
 	}
 
 	public int getMandelbrotWidth() {
