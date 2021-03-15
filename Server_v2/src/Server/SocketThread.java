@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
@@ -137,15 +139,15 @@ public class SocketThread implements Runnable {
 		
 		sendMessage("task\0");
 		receiveMessage();
-		sendMessage(task.getY());
+		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(task.getY()).array());
 		receiveMessage();
-		sendMessage(task.getxMove());
+		sendMessage(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getxMove()).array());
 		receiveMessage();
-		sendMessage(task.getyMove());
+		sendMessage(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getyMove()).array());
 		receiveMessage();
-		sendMessage(task.getZoom());
+		sendMessage(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getZoom()).array());
 		receiveMessage();
-		sendMessage(task.getItr());
+		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(task.getItr()).array());
 		
 	}
 
