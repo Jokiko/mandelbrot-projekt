@@ -2,7 +2,6 @@ package src.Server;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.ByteOrder;
 import java.util.StringTokenizer;
 
 import src.Benchmarks.PixelBenchmark;
@@ -90,6 +89,7 @@ public class AndroidSocketThread implements Runnable {
                         sendTask();
                         break;
                     case "tick":
+                        task = null;
                         //sendTask();
                         server.setImage();
                         break;
@@ -126,6 +126,10 @@ public class AndroidSocketThread implements Runnable {
 
     private void disconnect() {
         if (connected) {
+            if(task != null){
+                System.out.println("addToTaskList: " + task.getY());
+                server.addToTaskList(task);
+            }
             disconnected = true;
             close();
             server.disconnect();
