@@ -4,6 +4,11 @@
 	  <title>Test Client</title>
    </head>
    <body>
+		<form action="" onsubmit="connectToServer(event)">
+            <input type="text" id="messageText" autocomplete="off"/>
+            <button>Verbinden</button>
+        </form>
+   
       <script>
 		
 		//Variablen fuer Berechnung der Mandelbrotmenge
@@ -17,7 +22,10 @@
 		var yMove;
 		var zoom;
 		
-		var buffer;
+		var taskCounter = 0;
+		
+		var socket;
+		
 	  
 		//Import der Mandelbrotfunktion aus dem WebAssembly Modul
 		let mandelbrot;
@@ -29,25 +37,20 @@
 			mandelbrot = instance.exports._Z4plotiiiidddi;
 		});
 		
-
-		//Byte Array Auslesen
-		/*
-		function intFromBytes(arr){
-			var value;
-			for (var i = 0; i < arr.length; i++) {
-				value |= arr[i] >> 8*i;
-			}
-			return value;
-		}*/
+		function connectToServer(){
+		var input = document.getElementById("messageText")
+		console.log(input.value);
+		}
 		
-		
-		
-	  
 		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
 		//var socket = new WebSocket('ws://localhost:5000');
-		//var socket = new WebSocket('ws://169.254.108.186:5000');
-		var socket = new WebSocket('ws://136.199.4.109:5000');
+		socket = new WebSocket('ws://169.254.108.186:5000');
+		//var socket = new WebSocket('ws://136.199.4.117:5000');
+		//socket = new WebSocket('ws://'+input.value);
+		
 	  
+		
+	 
 		//Funktion bei Verbindungsaufbau
 		socket.onopen = function (){
 			console.log("Verbindung aufgebaut.\n");
@@ -63,6 +66,9 @@
 			console.log("WebSocket Error " + error);
 		};
 		
+		
+
+		
 		//callback-Funktion wird gerufen, wenn eine neue Websocket-Nachricht eintrifft
 		socket.onmessage = function (messageEvent){
 			console.log("Erhalte Nachricht von Server: " + messageEvent.data);
@@ -72,17 +78,9 @@
 			var res = str.split("/.../");
 			
 			
-			//Byte Array-Test
-			/*var byteArray = [];
-			for (var i = 0; i < messageEvent.data.length; ++i) {
-				byteArray.push(messageEvent.data.charCodeAt(i))
-			}*/
-			
 			//Task entgegennehmen
 			switch (task){
-				case 1:
-					//getY = bin2String(messageEvent.data);
-					//getY = intFromBytes(messageEvent.data);		
+				case 1:	
 					getY = messageEvent.data;
 					socket.send("s");
 					task++;
@@ -104,19 +102,35 @@
 					break;
 				case 5:
 					iterations = messageEvent.data;
+					var message = "";
 					console.log("Task mit Y: "+ getY +", xMove: " + xMove + ", yMove: " + yMove + ", zoom: " + zoom + ", iterations: " + iterations);
+
 					for(var x = 0; x < width; x++){
 						//Wert der Mandelbrotmenge durch importiertes WebAssembly Modul
 						var erg = mandelbrot(x, getY, width, height, xMove, yMove, zoom, iterations);
-						console.log("erg: " + erg);
-						socket.send("plot");
-						socket.send(x);
+						console.log(erg);
+
+						//socket.send("plot");
+						/*socket.send(x);
 						socket.send(getY);
-						socket.send(erg);
+						socket.send(erg);*/
+						if(x < width-1){
+							message += x+"/.../"+getY+"/.../"+erg+"/.../";
+						}
+						else{
+							message += x+"/.../"+getY+"/.../"+erg;
+						}
+						//socket.send(message);
+						//message = "";
 					}
+					socket.send("plot");
+					socket.send(message);
 					task = 0;
+					taskCounter++;
+					console.log("Task Nr. "+taskCounter+ " erfolgreich berechnet.");
+					
 					socket.send("tick");
-					socket.send("task");
+					//socket.send("task");
 					break;
 			}
 			switch (res[0]){
@@ -124,6 +138,11 @@
 				console.log("Task entgegen genommen");
 				task++;
 				break;
+			case "noTask":
+				socket.send("task");
+			case "size":
+				width = res[1];
+				height = res[2];
 			}
 			
 			/*
@@ -142,6 +161,7 @@
 			}
 		
 		}
+		
 	  </script>
    </body>
 </html>
