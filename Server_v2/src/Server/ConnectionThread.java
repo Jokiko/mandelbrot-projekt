@@ -81,6 +81,7 @@ public class ConnectionThread implements Runnable {
 		}
 	}
 
+	//Handshake gemaess https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_a_WebSocket_server_in_Java#handshaking
 	private void webSocketHandshake(Socket clientSocket, String data) throws NoSuchAlgorithmException, IOException {
 
 		Matcher get = Pattern.compile("^GET").matcher(data);

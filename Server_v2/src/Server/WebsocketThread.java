@@ -67,6 +67,7 @@ public class WebsocketThread implements Runnable {
 
     }
 
+    //encode aus https://stackoverflow.com/questions/43163592/standalone-websocket-server-without-jee-application-server
     public static byte[] encode(byte[] rawData){
         
         int frameCount  = 0;
@@ -114,19 +115,6 @@ public class WebsocketThread implements Runnable {
         return reply;
     }
 
-    private void sendMessage(byte[] task) throws IOException {
-        try {
-
-            byte[] reply = encode(task);
-
-            dout.write(reply, 0, reply.length);
-            dout.flush();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private void sendMessage(String text) {
         System.out.println("WebsocketThread-" + thread.getId() + ": " + text);
         try {
@@ -146,6 +134,7 @@ public class WebsocketThread implements Runnable {
         }
     }
 
+    //Lesen aus https://stackoverflow.com/questions/43163592/standalone-websocket-server-without-jee-application-server
     private void receiveMessage() {
 
         StringTokenizer token;
@@ -159,20 +148,21 @@ public class WebsocketThread implements Runnable {
             System.out.println("Error in serverThreadWebSocket");
         }
         String line = null;
-        byte[] b = new byte[8000];//incoming buffer
-        byte[] message =null;//buffer to assemble message in
+        byte[] b = new byte[8000];
+        byte[] message =null;
         byte[] masks = new byte[4];
-        boolean isSplit=false;//has a message been split over a read
-        int length = 0; //length of message
-        int totalRead =0; //total read in message so far
+        boolean isSplit=false;
+        int length = 0;
+        int totalRead =0;
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                int len = 0;//length of bytes read from socket
+                int len = 0;
                 try {
                     len = is.read(b);
                 } catch (IOException e) {
                     break;
                 }
+                // Dekodierung der WebSocket Nachricht
                 if (len != -1) {
                     boolean more = false;
                     int totalLength = 0;
@@ -183,26 +173,33 @@ public class WebsocketThread implements Runnable {
                             byte rLength = 0;
                             int rMaskIndex = 2;
                             int rDataStart = 0;
-                            // b[0] assuming text
+                            //Kein Check notwendig, da von Text ausgegangen wird
                             byte data = b[1];
                             byte op = (byte) 127;
+                            // Check, wo die Laenge geschrieben ist, wenn <=125 dann ist das die Laenge
                             rLength = (byte) (data & op);
                             length = (int) rLength;
+                            // wenn 126, dann steht in den naechsten 16 bit die Laenge
                             if (rLength == (byte) 126) {
                                 rMaskIndex = 4;
                                 length = Byte.toUnsignedInt(b[2]) << 8;
                                 length += Byte.toUnsignedInt(b[3]);
-                            } else if (rLength == (byte) 127)
+                            }
+                            // wenn 127, dann steht in den naechsten 64 bit die Laenge
+                            else if (rLength == (byte) 127)
                                 rMaskIndex = 10;
+                            //auf die Laenge folgt ein 4 bit langer mask key, der zum dekodieren benoetigt wird
                             for (i = rMaskIndex; i < (rMaskIndex + 4); i++) {
                                 masks[j] = b[i];
                                 j++;
                             }
 
+                            // auf den masking key folgen die verschluesselten Daten
                             rDataStart = rMaskIndex + 4;
 
                             message = new byte[length];
                             totalLength = length + rDataStart;
+                            // Entschluesslung der Daten
                             for (i = rDataStart, totalRead = 0; i<len && i < totalLength; i++, totalRead++) {
                                 message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
                             }
