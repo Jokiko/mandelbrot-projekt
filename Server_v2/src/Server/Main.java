@@ -4,7 +4,7 @@ public class Main {
 
     /**
      * main()
-     * ruft Server.startServer() auf
+     * calls server.startServer()
      * @param args String[]
      */
     public static void main(String[] args){

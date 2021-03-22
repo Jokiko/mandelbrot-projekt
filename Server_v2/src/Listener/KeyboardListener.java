@@ -7,7 +7,7 @@ import src.Server.Server;
 
 public class KeyboardListener implements KeyListener {
 
-	private Server server;
+	private final Server server;
 
 	public KeyboardListener(Server server) {
 		this.server = server;
@@ -73,7 +73,6 @@ public class KeyboardListener implements KeyListener {
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 }

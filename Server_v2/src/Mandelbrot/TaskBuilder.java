@@ -13,31 +13,26 @@ public class TaskBuilder {
 
 	private final MandelbrotPanel mandelbrotPanel;
 
-	//private Task[] tasks;
-	private ArrayList<Task> taskList = new ArrayList<>();
+	private final ArrayList<Task> taskList = new ArrayList<>();
 	private boolean calculated;
 	private double xMove;
 	private double yMove;
 
 	private double zoom;
-	private double accumulatedZoomFactor;
+
+	private double tmpBefore;
+	private int steps;
 
 	private int depth;
 	private int itr;
 	private int zoomDepth;
 
-	public synchronized void addToTaskList(Task task){
-		System.out.println("vor: " + taskList.size());
-		taskList.add(task);
-		System.out.println("nach: " + taskList.size());
-	}
 
 	public TaskBuilder(Server server, int imageWidth, int imageHeight) {
 		this.server = server;
 		this.imageWidth = imageWidth;
 		this.imageHeight = imageHeight;
 		this.calculated = false;
-		//this.tasks = new Task[imageHeight];
 		this.mandelbrotPanel = server.getServerView().getMandelbrotPanel();
 		setDefaultValues();
 		createNewTasks();
@@ -48,7 +43,6 @@ public class TaskBuilder {
 		xMove = 0;
 		yMove = 0;
 		zoom = 200;
-		accumulatedZoomFactor = 1;
 		depth = 0;
 		itr = 200;
 		zoomDepth = 0;
@@ -67,33 +61,28 @@ public class TaskBuilder {
 		createNewTasks();
 	}
 
-	public boolean zoomIn(double factor) {
+	public void zoomIn(double factor) {
 		mandelbrotPanel.requestFocus();
 
-//		accumulatedZoomFactor *= (1 + factor);
+		steps = 0;
+		tmpBefore = zoom;
 
 		zoom *= (1 + factor);
-		
+		while((tmpBefore *= 1.2) < zoom){
+			steps++;
+		}
+
 		xMove += xMove * factor;
 		yMove += yMove * factor;
 
 
-		increaseIteration((int) factor);
+		increaseIteration(steps);
 
-//		if (accumulatedZoomFactor > 2.0) {
-//			createNewTasks();
-//			increaseIteration(++depth);
-//			accumulatedZoomFactor = 1;
-//			return true;
-//		}
 		createNewTasks();
-		return false;
 	}
 
-	public boolean zoomOut(double factor) {
+	public void zoomOut(double factor) {
 		mandelbrotPanel.requestFocus();
-
-//		accumulatedZoomFactor /= (1 + factor);
 
 		if(zoomDepth > -10) {
 
@@ -110,17 +99,10 @@ public class TaskBuilder {
 
 			decreaseIteration(--depth);
 
-//		if (accumulatedZoomFactor < 1.0) {
-//			createNewTasks();
-//			decreaseIteration(--depth);
-//			accumulatedZoomFactor = 1;
-//			return true;
-//		}
 			createNewTasks();
 		}else{
 			depth = 0;
 		}
-		return false;
 	}
 
 	public void defaultImage() {
@@ -129,7 +111,7 @@ public class TaskBuilder {
 	}
 
 	private void increaseIteration(int depth) {
-	if (depth == 0) {
+		if (depth == 0) {
 			zoomDepth++;
 		} else {
 			zoomDepth += depth;
@@ -147,7 +129,6 @@ public class TaskBuilder {
 		int tmp = itr;
 		if (depth % 10 == 0) {
 			if((tmp -= tmp - (tmp / 1.25)) >= 200) {
-				//itr -= itr - (itr / 1.25);
 				itr = tmp;
 			}else{
 				itr = 200;
@@ -164,14 +145,6 @@ public class TaskBuilder {
 		}
 	}
 
-	public double getMoveX() {
-		return xMove;
-	}
-
-	public double getMoveY() {
-		return yMove;
-	}
-
 	public synchronized Task getTask() {
 
 		if (taskList.size() > 0 && !calculated) {
@@ -183,5 +156,9 @@ public class TaskBuilder {
 		calculated = true;
 
 		return null;
+	}
+
+	public synchronized void addToTaskList(Task task){
+		taskList.add(task);
 	}
 }

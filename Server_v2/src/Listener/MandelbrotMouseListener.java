@@ -9,8 +9,8 @@ import src.Server.Server;
 
 public class MandelbrotMouseListener extends MouseAdapter {
 
-	private Server server;
-	private MandelbrotPanel mandelbrotPanel;
+	private final Server server;
+	private final MandelbrotPanel mandelbrotPanel;
 	private boolean canceled;
 
 	private int mWidth;
@@ -84,8 +84,7 @@ public class MandelbrotMouseListener extends MouseAdapter {
 	public void mouseReleased(MouseEvent e) {
 		if (!canceled && server.getConnected() > 0) {
 
-			if((((mWidth / (rectWidth * 1.0)) + (mHeight / (rectHeight * 1.0))) / 2.0) !=  Double.POSITIVE_INFINITY) {
-
+			if(startX != endX && startY != endY && endX > 0 && endY > 0){
 				factorX = (middleRectX - (mWidth / 2.0));
 				factorY = (middleRectY - (mHeight / 2.0));
 

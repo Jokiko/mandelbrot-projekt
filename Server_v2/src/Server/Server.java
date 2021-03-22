@@ -2,7 +2,6 @@ package src.Server;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.HashMap;
 
 import javax.swing.*;
 
@@ -12,15 +11,15 @@ import src.Mandelbrot.TaskBuilder;
 import src.View.ServerView;
 
 public class Server {
+	/* Used to show the current number pf iterations*/
 	private JLabel number_iterations;
 
 	/* Used to build TCP connection */
-	
 	private InetAddress host;
 	private ServerSocket serverSocket;
 	private ConnectionThread connectionThread;
 
-	/* Userinterface */
+	/* UserInterface */
 	private ServerView userInterface;
 
 	/* Data to be displayed in "userInterface */
@@ -29,11 +28,7 @@ public class Server {
 	/* Creates tasks based on current user interactions */
 	private TaskBuilder taskbuilder;
 
-	/* Used to store client sockets */
-	private HashMap<String, Socket> client_sockets = new HashMap<>();
-	private HashMap<String, Socket> client_websockets = new HashMap<>();
-
-	/* TCP Serverport */
+	/* TCP ServerPort */
 	private final int port;
 
 	/* Number of clients */
@@ -72,14 +67,14 @@ public class Server {
 	}
 
 	/**
-	 * Startup method. Can be called again by user via JOptionpane if any exception
+	 * Startup method. Can be called again by user via JOptionPane if any exception
 	 * occurs during initialization.
 	 */
 	public void startServer() {
+		initializeUserInterface();
 		initializeHost();
 		initializeServerSocket();
 		initializeConnectionThread();
-		initializeUserInterface();
 		initializeTaskBuilder();
 		initializeImage();
 	}
@@ -103,8 +98,10 @@ public class Server {
 	 */
 	private void initializeServerSocket() {
 		try {
-			serverSocket = new ServerSocket();
-			serverSocket.bind(new InetSocketAddress(host, port));
+			//TODO anpassen
+			serverSocket = new ServerSocket(port);
+			//serverSocket = new ServerSocket();
+			//serverSocket.bind(new InetSocketAddress(host, port));
 		} catch (IOException ioe) {
 			System.out.println("Server error");
 			ioe.printStackTrace();
@@ -222,8 +219,7 @@ public class Server {
 	 */
 	void createSocketThread(Socket clientSocket, String name) {
 
-		SocketThread socketThread = new SocketThread(clientSocket, this);
-		client_sockets.put(name, clientSocket);
+		SocketThread socketThread = new SocketThread(clientSocket, this, name);
 		socketThread.start();
 
 	}
@@ -234,8 +230,7 @@ public class Server {
 	 */
 	void createAndroidSocketThread(Socket clientSocket, String name) {
 
-		AndroidSocketThread androidSocketThread = new AndroidSocketThread(clientSocket, this);
-		client_sockets.put(name, clientSocket);
+		AndroidSocketThread androidSocketThread = new AndroidSocketThread(clientSocket, this, name);
 		androidSocketThread.start();
 
 	}
@@ -246,8 +241,7 @@ public class Server {
 	 */
 	void createWebSocketThread(Socket clientSocket, String name) {
 
-		WebsocketThread websocketThread = new WebsocketThread(clientSocket, this);
-		client_websockets.put(name, clientSocket);
+		WebSocketThread websocketThread = new WebSocketThread(clientSocket, this, name);
 		websocketThread.start();
 
 	}
@@ -258,30 +252,21 @@ public class Server {
 		if(getConnected() > 0) {
 			taskbuilder.moveX(factor);
 		}
-//		image.transformX(factor);
 	}
 
 	public void moveY(double factor) {
 		if(getConnected() > 0){
 			taskbuilder.moveY(factor);
 		}
-//		image.transformY(factor);
 	}
 
 	public void zoomIn(double factor) {
-//		if (!taskbuilder.zoomIn(factor)) {
-//			image.transformZoomIn(factor);
-//		}
-
 		if(getConnected() > 0) {
 			taskbuilder.zoomIn(factor);
 		}
 	}
 
 	public void zoomOut(double factor) {
-//		if (!taskbuilder.zoomOut(factor)) {
-//			image.transformZoomOut(factor);
-//		}
 		if(getConnected() > 0){
 			taskbuilder.zoomOut(factor);
 		}
@@ -323,29 +308,17 @@ public class Server {
 		userInterface.setNumberOfClients(connected);
 	}
 
-	void setPackagesPerSecond(int packages) {
-		userInterface.setPackagesPerSecond(packages);
-	}
-
-	void setFPS(double d) {
-		userInterface.setFPS(d);
-	}
-
 	/*----------------------------------------------------------------*/
 
 	/*-Getter-Methods-------------------------------------------------*/
-
-	public TaskBuilder getTaskBuilder() {
-		return taskbuilder;
-	}
 
 	synchronized Task getTask() {
 		return taskbuilder.getTask();
 	}
 
+	/*----------------------------------------------------------------*/
+
 	synchronized void addToTaskList(Task task){
 		taskbuilder.addToTaskList(task);
 	}
-
-	/*----------------------------------------------------------------*/
 }

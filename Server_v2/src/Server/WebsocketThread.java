@@ -3,19 +3,15 @@ package src.Server;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.StringTokenizer;
 
-import src.Benchmarks.PixelBenchmark;
 import src.Mandelbrot.Task;
 
 
-public class WebsocketThread implements Runnable {
-    private Socket socket;
-    private Server server;
+public class WebSocketThread implements Runnable {
+    private final Socket socket;
+    private final Server server;
 
     private BufferedReader reader;
     private PrintWriter writer;
@@ -25,10 +21,7 @@ public class WebsocketThread implements Runnable {
     private static InputStream is = null;
     private static OutputStream out = null;
 
-    private PixelBenchmark bm = new PixelBenchmark();
-    private PixelBenchmark fm = new PixelBenchmark();
-
-    private Thread thread;
+    private final Thread thread;
     private Task task;
 
     private boolean disconnected;
@@ -41,11 +34,12 @@ public class WebsocketThread implements Runnable {
     private int plotCount = 0;
     private boolean overflow = false;
 
-    public WebsocketThread(Socket socket, Server server) {
+    public WebSocketThread(Socket socket, Server server, String name) {
 
         this.socket = socket;
         this.server = server;
         this.thread = new Thread(this);
+        this.thread.setName("Thread_" + name);
 
         connected = false;
         disconnected = false;
@@ -69,7 +63,7 @@ public class WebsocketThread implements Runnable {
 
     //encode aus https://stackoverflow.com/questions/43163592/standalone-websocket-server-without-jee-application-server
     public static byte[] encode(byte[] rawData){
-        
+
         int frameCount  = 0;
         byte[] frame = new byte[10];
 
@@ -125,12 +119,11 @@ public class WebsocketThread implements Runnable {
             dout.write(reply, 0, reply.length);
             dout.flush();
 
-        }
-        catch (SocketException exception){
+        } catch (SocketException exception) {
             System.out.println("SocketExpection in sendMessage");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
+
         }
     }
 
@@ -211,8 +204,6 @@ public class WebsocketThread implements Runnable {
                             }
                             totalLength=i;
                         }
-
-
                         if (totalRead<length) {
                             isSplit=true;
                         }else {
@@ -221,7 +212,6 @@ public class WebsocketThread implements Runnable {
                             line = new String(message,  StandardCharsets.UTF_8);
                             b = new byte[8000];
                         }
-
                        /* if (totalLength < len) {
                             more = true;
                             for (i = totalLength, j = 0; i < len; i++, j++)
@@ -233,9 +223,7 @@ public class WebsocketThread implements Runnable {
                     } while (more);
                 } else
                     break;
-
                 System.out.println(line);
-
                 switch (line) {
                     case "connect":
                         connect();
@@ -244,11 +232,8 @@ public class WebsocketThread implements Runnable {
                         sendTask();
                         break;
                     case "tick":
+                        task = null;
                         server.setImage();
-                        break;
-                    case "frame":
-                        fm.stop();
-                        System.out.println("Total time frame (real): " + fm.getResult());
                         break;
                     case "s":
                         return;
@@ -263,30 +248,27 @@ public class WebsocketThread implements Runnable {
             e.printStackTrace();
         }
     }
-
     public void start() {
         sendMessage("First contact successful");
         thread.start();
     }
-
     private void connect() {
         connected = true;
         sendMessage("Connect success");
         server.connect();
     }
-
     private void disconnect() {
         if (connected) {
+            if(task != null){
+                server.addToTaskList(task);
+            }
             disconnected = true;
             close();
             server.disconnect();
         }
     }
-
     private void sendTask() throws IOException {
-
         task = server.getTask();
-
         if (task == null) {
             sendMessage("noTask");
             return;
@@ -295,10 +277,10 @@ public class WebsocketThread implements Runnable {
         int getY =  task.getY();
         sendMessage(String.valueOf(getY));
         receiveMessage();
-        double xMove =  task.getxMove();
+        double xMove =  task.getXMove();
         sendMessage(String.valueOf(xMove));
         receiveMessage();
-        double yMove = task.getyMove();
+        double yMove = task.getYMove();
         sendMessage(String.valueOf(yMove));
         receiveMessage();
         double zoom = task.getZoom();
@@ -307,9 +289,7 @@ public class WebsocketThread implements Runnable {
         int itr = task.getItr();
         System.out.println("Iterationen: "+ itr);
         sendMessage(String.valueOf(itr));
-
     }
-
     private synchronized void plot(String compare) throws IOException {
         int colorItr = 20;
         /*if(compare.equals("")){
@@ -333,7 +313,6 @@ public class WebsocketThread implements Runnable {
                         x = 0;
                         overflow = true;
                     }
-
                     System.out.println("Schummel x bei: " + x);
                     plotCount++;
                     break;
@@ -360,13 +339,11 @@ public class WebsocketThread implements Runnable {
                 y = Integer.parseInt(compare);
                 plotCount++;
                 break;
-
             case 3:
                 itr = Integer.parseInt(compare);
                 failsafe = itr;
                 server.setRGB(x, y, itr | (itr << colorItr));
                 plotCount = 0;
-
         }*/
         if(compare.equals("")||compare.equals("end")){
             System.out.println("Leer");
@@ -395,7 +372,6 @@ public class WebsocketThread implements Runnable {
         catch(NumberFormatException nFe) {
             System.out.println("NumberFormatExpecption");
         }
-        bm.stop();
         /*if (!compare.equals("")) {
             System.out.println("compare:");
             System.out.println(compare);
@@ -410,13 +386,12 @@ public class WebsocketThread implements Runnable {
             server.setRGB(x, y, itr | (itr << colorItr));
             x++;
                 ite = reader.readLine();
-
             }
         }*/
     }
-
     private void close() {
         System.out.println(Thread.currentThread().getName() + ": Connection Closing...");
+        thread.interrupt();
         try {
             reader.close();
             System.out.println("BufferedReader closed: " + reader.toString());
@@ -428,14 +403,10 @@ public class WebsocketThread implements Runnable {
             e.printStackTrace();
         }
     }
-
     public void run() {
-
         receiveMessage();
-
         if (!disconnected)
             disconnect();
-        System.out.println("ServerThread beendet");
-
+        System.out.println(Thread.currentThread().getName() + " terminated");
     }
 }

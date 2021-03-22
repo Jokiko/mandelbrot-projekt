@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.Socket;
 import java.util.StringTokenizer;
 
-import src.Benchmarks.PixelBenchmark;
 import src.Mandelbrot.Task;
 
 public class AndroidSocketThread implements Runnable {
@@ -16,21 +15,19 @@ public class AndroidSocketThread implements Runnable {
     private PrintWriter printWriter;
     private DataOutputStream dataOutputStream;
 
-    private final PixelBenchmark bm = new PixelBenchmark();
-    private final PixelBenchmark fm = new PixelBenchmark();
-
     private final Thread thread;
     private Task task;
 
     private boolean disconnected;
     private boolean connected;
 
-    public AndroidSocketThread(Socket socket, Server server) {
+    public AndroidSocketThread(Socket socket, Server server, String name) {
         System.out.println("AndroidSocket");
 
         this.socket = socket;
         this.server = server;
         this.thread = new Thread(this);
+        this.thread.setName("Thread_" + name);
 
         connected = false;
         disconnected = false;
@@ -61,7 +58,7 @@ public class AndroidSocketThread implements Runnable {
         dataOutputStream.flush();
     }
 
-    private void sendMessage(String text) {
+    public void sendMessage(String text) {
         printWriter.println(text);
         printWriter.flush();
     }
@@ -73,11 +70,9 @@ public class AndroidSocketThread implements Runnable {
         String compare;
 
         try {
-            while (((input = (bufferedReader.readLine())) != null) && !Thread.currentThread().isInterrupted()) {
+            while (((input = bufferedReader.readLine()) != null) && !Thread.currentThread().isInterrupted()) {
                 //System.out.println("input (vor): " + input);
 
-                bm.start();
-                fm.start();
                 token = new StringTokenizer(input, "/.");
                 compare = token.nextElement().toString();
 
@@ -90,13 +85,7 @@ public class AndroidSocketThread implements Runnable {
                         break;
                     case "tick":
                         task = null;
-                        //sendTask();
                         server.setImage();
-                        break;
-                    case "frame":
-                        server.setImage();
-                        fm.stop();
-//					    System.out.println("Total time frame (real): " + fm.getResult());
                         break;
                     case "s":
                         return;
@@ -111,8 +100,8 @@ public class AndroidSocketThread implements Runnable {
     }
 
     public void start() {
-        sendMessage("First contact successful");
         thread.start();
+        sendMessage("First contact successful");
     }
 
     private void connect() throws IOException {
@@ -127,7 +116,6 @@ public class AndroidSocketThread implements Runnable {
     private void disconnect() {
         if (connected) {
             if(task != null){
-                System.out.println("addToTaskList: " + task.getY());
                 server.addToTaskList(task);
             }
             disconnected = true;
@@ -146,30 +134,20 @@ public class AndroidSocketThread implements Runnable {
         }
 
         sendMessage("task");
-
         receiveMessage();
 
-        //int y = java.nio.ByteBuffer.wrap(task.getY()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
         sendMessage(task.getY());
-
         receiveMessage();
 
-        //double xMove = java.nio.ByteBuffer.wrap(task.getxMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        sendMessage(task.getxMove());
-
+        sendMessage(task.getXMove());
         receiveMessage();
 
-        //double yMove = java.nio.ByteBuffer.wrap(task.getyMove()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
-        sendMessage(task.getyMove());
-
+        sendMessage(task.getYMove());
         receiveMessage();
 
-        //double zoom = java.nio.ByteBuffer.wrap(task.getZoom()).order((ByteOrder.LITTLE_ENDIAN)).getDouble();
         sendMessage(task.getZoom());
-
         receiveMessage();
 
-        //int itr = java.nio.ByteBuffer.wrap(task.getItr()).order((ByteOrder.LITTLE_ENDIAN)).getInt();
         sendMessage(task.getItr());
     }
 
@@ -183,11 +161,11 @@ public class AndroidSocketThread implements Runnable {
 
         //System.out.println("x: " + x + ", y: " + y + "; itr: " + itr);
         server.setRGB(x, y, itr);
-        bm.stop();
     }
 
     private void close() {
         System.out.println(Thread.currentThread().getName() + ": Connection Closing...");
+        thread.interrupt();
         try {
             bufferedReader.close();
             System.out.println("BufferedReader closed: " + bufferedReader.toString());
@@ -206,7 +184,7 @@ public class AndroidSocketThread implements Runnable {
 
         if (!disconnected)
             disconnect();
-        System.out.println(Thread.currentThread().getName() + " beendet");
+        System.out.println(Thread.currentThread().getName() + " terminated");
 
     }
 }

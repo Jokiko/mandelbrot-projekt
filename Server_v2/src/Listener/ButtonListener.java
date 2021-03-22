@@ -7,7 +7,7 @@ import src.Server.Server;
 
 public class ButtonListener implements ActionListener {
 
-	private Server server;
+	private final Server server;
 
 	public ButtonListener(Server server) {
 		this.server = server;

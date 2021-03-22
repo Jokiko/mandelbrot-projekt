@@ -8,35 +8,33 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.StringTokenizer;
 
-import src.Benchmarks.PixelBenchmark;
 import src.Mandelbrot.Task;
 
 public class SocketThread implements Runnable {
 
-	private Socket socket;
-	private Server server;
+	private final Socket socket;
+	private final Server server;
+
+	private byte[] y_bytes, xMove_bytes, yMove_bytes, zoom_bytes, itr_bytes;
 
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private DataOutputStream dout;
 
-	private PixelBenchmark bm = new PixelBenchmark();
-	private PixelBenchmark fm = new PixelBenchmark();
-
-	private Thread thread;
+	private final Thread thread;
 	private Task task;
 
 	private boolean disconnected;
 	private boolean connected;
 
-	public SocketThread(Socket socket, Server server) {
+	public SocketThread(Socket socket, Server server, String name) {
 
 		this.socket = socket;
 		this.server = server;
 		this.thread = new Thread(this);
+		this.thread.setName("Thread_" + name);
 
 		connected = false;
 		disconnected = false;
@@ -60,7 +58,7 @@ public class SocketThread implements Runnable {
 
 	private void sendMessage(byte[] task) throws IOException {
 		dout.write(task);
-		writer.flush();
+		dout.flush();
 	}
 
 	private void sendMessage(String text) {
@@ -77,9 +75,7 @@ public class SocketThread implements Runnable {
 
 		try {
 			while (((input = (reader.readLine())) != null) && !Thread.currentThread().isInterrupted()) {
-				bm.start();
-				fm.start();
-				token = new StringTokenizer(input, "/.../");
+				token = new StringTokenizer(input, "/.");
 				compare = token.nextElement().toString();
 
 				switch (compare) {
@@ -90,12 +86,11 @@ public class SocketThread implements Runnable {
 					sendTask();
 					break;
 				case "tick":
+					task = null;
 					server.setImage();
 					break;
 				case "frame":
 					server.setImage();
-					fm.stop();
-//					System.out.println("Total time frame (real): " + fm.getResult());
 					break;
 				case "s":
 					return;
@@ -115,13 +110,16 @@ public class SocketThread implements Runnable {
 	}
 
 	private void connect() {
-		connected = true;
 		sendMessage("Connect success\n\0");
+		connected = true;
 		server.connect();
 	}
 
 	private void disconnect() {
 		if (connected) {
+			if(task != null){
+				server.addToTaskList(task);
+			}
 			disconnected = true;
 			close();
 			server.disconnect();
@@ -136,19 +134,23 @@ public class SocketThread implements Runnable {
 			sendMessage("noTask\0");
 			return;
 		}
-		
+
 		sendMessage("task\0");
 		receiveMessage();
-		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(task.getY()).array());
+		y_bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(task.getY()).array();
+		sendMessage(y_bytes);
 		receiveMessage();
-		sendMessage(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getxMove()).array());
+		xMove_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getXMove()).array();
+		sendMessage(xMove_bytes);
 		receiveMessage();
-		sendMessage(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getyMove()).array());
+		yMove_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getYMove()).array();
+		sendMessage(yMove_bytes);
 		receiveMessage();
-		sendMessage(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getZoom()).array());
+		zoom_bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(task.getZoom()).array();
+		sendMessage(zoom_bytes);
 		receiveMessage();
-		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(task.getItr()).array());
-		
+		itr_bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(task.getItr()).array();
+		sendMessage(itr_bytes);
 	}
 
 	private void plot(String compare) throws IOException {
@@ -160,12 +162,11 @@ public class SocketThread implements Runnable {
 		itr = Integer.parseInt(reader.readLine());
 		
 		server.setRGB(x, y, itr);
-//		System.out.println("x: " + x + " y: " + y + " itr: " + itr);
-		bm.stop();
 	}
 
 	private void close() {
 		System.out.println(Thread.currentThread().getName() + ": Connection Closing...");
+		thread.interrupt();
 		try {
 			reader.close();
 			System.out.println("BufferedReader closed: " + reader.toString());
@@ -184,7 +185,7 @@ public class SocketThread implements Runnable {
 
 		if (!disconnected)
 			disconnect();
-		System.out.println("ServerThread beendet");
+		System.out.println(Thread.currentThread().getName() + " terminated");
 
 	}
 }

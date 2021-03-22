@@ -11,10 +11,10 @@ import javax.swing.JPanel;
 
 public class ContentPanel extends JPanel {
 	
-	private GridBagLayout gridBagLayout = new GridBagLayout();
-	private GridBagConstraints gridBagConstraints = new GridBagConstraints();
+	private final GridBagLayout gridBagLayout = new GridBagLayout();
+	private final GridBagConstraints gridBagConstraints = new GridBagConstraints();
 
-	public ContentPanel(int width, int height) {
+	public ContentPanel() {
 		setLayout(gridBagLayout);
 		setBorder(BorderFactory.createLineBorder(Color.WHITE));
 		setBackground(Color.DARK_GRAY);
@@ -42,16 +42,6 @@ public class ContentPanel extends JPanel {
 		gridBagConstraints.gridy = gridy;
 		gridBagConstraints.gridwidth = gridwidth;
 		gridBagConstraints.gridheight = gridheight;
-	}
-
-	public void setWeight(double weightx, double weighty) {
-		gridBagConstraints.weightx = weightx;
-		gridBagConstraints.weighty = weighty;
-	}
-
-	public void setPadding(int ipadx, int ipady) {
-		gridBagConstraints.ipadx = ipadx;
-		gridBagConstraints.ipady = ipady;
 	}
 
 	public void addComponent(Component component) {

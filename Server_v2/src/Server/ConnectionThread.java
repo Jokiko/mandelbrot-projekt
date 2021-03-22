@@ -17,9 +17,9 @@ import java.util.regex.Pattern;
 
 public class ConnectionThread implements Runnable {
 
-	private ServerSocket serverSocket;
-	private Server server;
-	private Thread thread;
+	private final ServerSocket serverSocket;
+	private final Server server;
+	private final Thread thread;
 	private boolean running = true;
 
 	private String clientType;
@@ -44,18 +44,18 @@ public class ConnectionThread implements Runnable {
 
 		switch(clientType){
 			case "WebSocket":
-				server.createWebSocketThread(clientSocket, "Test " + System.nanoTime());
+				server.createWebSocketThread(clientSocket, "WebSocket_" + System.nanoTime());
 				break;
 			case "Android":
-				server.createAndroidSocketThread(clientSocket, "Test " +  + System.nanoTime());
+				server.createAndroidSocketThread(clientSocket, "Android_Socket_" +  + System.nanoTime());
 				break;
 			case "Cuda":
-				server.createSocketThread(clientSocket, "Test " + System.nanoTime());
+				server.createSocketThread(clientSocket, "Cuda_" + System.nanoTime());
 				break;
 		}
 	}
 
-	private void getClientType(Socket clientSocket) throws NoSuchAlgorithmException, IOException {
+	private void getClientType(Socket clientSocket) throws NoSuchAlgorithmException {
 
 		StringTokenizer tokenizer;
 		Scanner scan;
@@ -65,7 +65,7 @@ public class ConnectionThread implements Runnable {
 
 			out = clientSocket.getOutputStream();
 			scan = new Scanner(new BufferedReader(new InputStreamReader(clientSocket.getInputStream())));
-			tokenizer = new StringTokenizer(scan.next(), "/.../");
+			tokenizer = new StringTokenizer(scan.next(), "/.");
 			tmp = tokenizer.nextToken();
 
 			if (tmp.equals("type")) {
@@ -117,7 +117,6 @@ public class ConnectionThread implements Runnable {
 				running = false;
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

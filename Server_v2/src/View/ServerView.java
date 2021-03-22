@@ -28,7 +28,7 @@ public class ServerView extends JFrame {
 	/*
 	 * "server" serves as controller
 	 */
-	private Server server;
+	private final Server server;
 
 	/*
 	 * "contentPanel" overwrites the default content pane of ServerView and contains
@@ -165,7 +165,7 @@ public class ServerView extends JFrame {
 	 */
 	private void initiate() {
 
-		contentPanel = new ContentPanel(FRAME_WIDTH, FRAME_HEIGHT);
+		contentPanel = new ContentPanel();
 		mandelbrotPanel = new MandelbrotPanel(MANDELBROT_PANEL_WIDTH, MANDELBROT_PANEL_HEIGHT);
 		buttonPanel = new ButtonPanel(BUTTON_PANEL_WIDTH, BUTTON_PANEL_HEIGHT);
 		monitorPanel = new MonitorPanel(server, MONITOR_PANEL_WIDTH, MONITOR_PANEL_HEIGHT);
@@ -260,14 +260,6 @@ public class ServerView extends JFrame {
 
 	public void setNumberOfClients(int number) {
 		monitorPanel.setNumberOfClients(number);
-	}
-
-	public void setPackagesPerSecond(int packages) {
-		monitorPanel.setPackagesPerSecond(packages);
-	}
-
-	public void setFPS(double d) {
-		monitorPanel.setFPS(d);
 	}
 
 	public int getMandelbrotWidth() {
