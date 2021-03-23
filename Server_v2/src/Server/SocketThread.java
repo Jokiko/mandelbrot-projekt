@@ -89,6 +89,12 @@ public class SocketThread implements Runnable {
 					task = null;
 					server.setImage();
 					break;
+				case "width":
+					sendWidth();
+					break;
+				case "height":
+					sendHeight();
+					break;
 				case "frame":
 					server.setImage();
 					break;
@@ -103,6 +109,7 @@ public class SocketThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
 
 	public void start() {
 		sendMessage("First contact successful\n\0");
@@ -124,6 +131,14 @@ public class SocketThread implements Runnable {
 			close();
 			server.disconnect();
 		}
+	}
+	
+	private void sendWidth() throws IOException {
+		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(server.getServerView().getMANDELBROT_PANEL_WIDTH()).array());
+	}
+	
+	private void sendHeight() throws IOException {
+		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(server.getServerView().getMANDELBROT_PANEL_HEIGHT()).array());
 	}
 
 	private void sendTask() throws IOException {
