@@ -241,7 +241,7 @@ public class Server {
 	 */
 	void createWebSocketThread(Socket clientSocket, String name) {
 
-		WebSocketThread websocketThread = new WebSocketThread(clientSocket, this, name);
+		WebsocketThread websocketThread = new WebsocketThread(clientSocket, this, name);
 		websocketThread.start();
 
 	}

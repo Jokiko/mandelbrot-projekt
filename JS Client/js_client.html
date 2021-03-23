@@ -26,6 +26,8 @@
 		
 		var socket;
 		
+	
+		
 	  
 		//Import der Mandelbrotfunktion aus dem WebAssembly Modul
 		let mandelbrot;
@@ -77,43 +79,30 @@
 			var str = messageEvent.data;
 			var res = str.split("/.../");
 			
-			
+			switch (res[0]){
 			//Task entgegennehmen
-			switch (task){
-				case 1:	
-					getY = messageEvent.data;
-					socket.send("s");
-					task++;
-					break;
-				case 2:
-					xMove = messageEvent.data;
-					socket.send("s");
-					task++;
-					break;
-				case 3:
-					yMove = messageEvent.data;
-					socket.send("s");
-					task++;
-					break;
-				case 4:
-					zoom = messageEvent.data;
-					socket.send("s");
-					task++;
-					break;
-				case 5:
-					iterations = messageEvent.data;
+			case "task":
+				console.log("Task entgegen genommen");
+				//socket.send("s");
+				getY=res[1];
+				xMove=res[2];
+				yMove=res[3];
+				zoom=res[4];
+				iterations=res[5];
+					//iterations = messageEvent.data;
 					var message = "";
 					console.log("Task mit Y: "+ getY +", xMove: " + xMove + ", yMove: " + yMove + ", zoom: " + zoom + ", iterations: " + iterations);
 
 					for(var x = 0; x < width; x++){
 						//Wert der Mandelbrotmenge durch importiertes WebAssembly Modul
 						var erg = mandelbrot(x, getY, width, height, xMove, yMove, zoom, iterations);
-						console.log(erg);
+						//console.log(erg);
 
 						//socket.send("plot");
 						/*socket.send(x);
 						socket.send(getY);
 						socket.send(erg);*/
+						//letzter Wert wird am Ende ohne Trennsymbol verschickt
 						if(x < width-1){
 							message += x+"/.../"+getY+"/.../"+erg+"/.../";
 						}
@@ -124,32 +113,29 @@
 						//message = "";
 					}
 					socket.send("plot");
+		
 					socket.send(message);
 					task = 0;
 					taskCounter++;
 					console.log("Task Nr. "+taskCounter+ " erfolgreich berechnet.");
-					
+					x = 0;
+		
 					socket.send("tick");
+					
 					//socket.send("task");
-					break;
-			}
-			switch (res[0]){
-			case "task":
-				console.log("Task entgegen genommen");
-				task++;
+					
+				break;
+			case "tickCheck":
+				//socket.send("task");
 				break;
 			case "noTask":
 				socket.send("task");
+				break;
 			case "size":
 				width = res[1];
 				height = res[2];
 			}
-			
-			/*
-				var t0 = performance.now();
-				var t1 = performance.now();
-				console.log("Berechnung dauerte " + (t1 - t0) + " Millisekunden.");
-			*/
+
 		};
 		
 		socket.onclose = function(closeEvent){

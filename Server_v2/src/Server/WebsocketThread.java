@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 import src.Mandelbrot.Task;
 
 
-public class WebSocketThread implements Runnable {
+public class WebsocketThread implements Runnable {
     private final Socket socket;
     private final Server server;
 
@@ -34,7 +34,7 @@ public class WebSocketThread implements Runnable {
     private int plotCount = 0;
     private boolean overflow = false;
 
-    public WebSocketThread(Socket socket, Server server, String name) {
+    public WebsocketThread(Socket socket, Server server, String name) {
 
         this.socket = socket;
         this.server = server;
@@ -120,7 +120,7 @@ public class WebSocketThread implements Runnable {
             dout.flush();
 
         } catch (SocketException exception) {
-            System.out.println("SocketExpection in sendMessage");
+            exception.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -223,7 +223,7 @@ public class WebSocketThread implements Runnable {
                     } while (more);
                 } else
                     break;
-                System.out.println(line);
+                //System.out.println(line);
                 switch (line) {
                     case "connect":
                         connect();
@@ -232,7 +232,6 @@ public class WebSocketThread implements Runnable {
                         sendTask();
                         break;
                     case "tick":
-                        task = null;
                         server.setImage();
                         break;
                     case "s":
@@ -273,22 +272,25 @@ public class WebSocketThread implements Runnable {
             sendMessage("noTask");
             return;
         }
-        sendMessage("task");
+        /*sendMessage("task");
         int getY =  task.getY();
-        sendMessage(String.valueOf(getY));
-        receiveMessage();
+        //sendMessage(String.valueOf(getY));
+        //receiveMessage();
         double xMove =  task.getXMove();
-        sendMessage(String.valueOf(xMove));
-        receiveMessage();
+        //sendMessage(String.valueOf(xMove));
+        //receiveMessage();
         double yMove = task.getYMove();
-        sendMessage(String.valueOf(yMove));
-        receiveMessage();
+        //sendMessage(String.valueOf(yMove));
+        //receiveMessage();
         double zoom = task.getZoom();
-        sendMessage(String.valueOf(zoom));
-        receiveMessage();
+        //receiveMessage();
         int itr = task.getItr();
-        System.out.println("Iterationen: "+ itr);
-        sendMessage(String.valueOf(itr));
+        //System.out.println("Iterationen: "+ itr);
+        //sendMessage(String.valueOf(itr));*/
+
+        String infos = "task/.../"+task.getY() +"/.../"+task.getXMove()+"/.../"+task.getYMove()+"/.../"+task.getZoom()+"/.../"+task.getItr();
+        sendMessage(infos);
+
     }
     private synchronized void plot(String compare) throws IOException {
         int colorItr = 20;
@@ -360,17 +362,20 @@ public class WebSocketThread implements Runnable {
         }*/
         String[] plotti = compare.split("/.../");
         try {
-            for (int i = 0; i < 1500; i = i+3) {
+            for (int i = 0; i < server.getMANDELBROT_PANEL_WIDTH()*3; i = i+3) {
                 x = Integer.parseInt(plotti[i]);
                 y = Integer.parseInt(plotti[i+1]);
                 itr = Integer.parseInt(plotti[i+2]);
                 server.setRGB(x, y, itr | (itr << colorItr));
             }
             server.setImage();
+            task = null;
             sendTask();
         }
         catch(NumberFormatException nFe) {
-            System.out.println("NumberFormatExpecption");
+            System.out.println("NumberFormatException");
+            server.addToTaskList(task);
+            sendTask();
         }
         /*if (!compare.equals("")) {
             System.out.println("compare:");
