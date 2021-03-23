@@ -223,7 +223,7 @@ public class WebsocketThread implements Runnable {
                     } while (more);
                 } else
                     break;
-                System.out.println(line);
+                //System.out.println(line);
                 switch (line) {
                     case "connect":
                         connect();
@@ -374,6 +374,8 @@ public class WebsocketThread implements Runnable {
         }
         catch(NumberFormatException nFe) {
             System.out.println("NumberFormatException");
+            server.addToTaskList(task);
+            sendTask();
         }
         /*if (!compare.equals("")) {
             System.out.println("compare:");
