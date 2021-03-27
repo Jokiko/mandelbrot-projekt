@@ -110,7 +110,7 @@ public class WebsocketThread implements Runnable {
     }
 
     private void sendMessage(String text) {
-        System.out.println("WebsocketThread-" + thread.getId() + ": " + text);
+        if(!text.equals("noTask")) System.out.println("WebsocketThread-" + thread.getId() + ": " + text);
         try {
 
             byte[] rawData = text.getBytes();
@@ -212,18 +212,10 @@ public class WebsocketThread implements Runnable {
                             line = new String(message,  StandardCharsets.UTF_8);
                             b = new byte[8000];
                         }
-                       /* if (totalLength < len) {
-                            more = true;
-                            for (i = totalLength, j = 0; i < len; i++, j++)
-                                b[j] = b[i];
-                            len = len - totalLength;
-                            System.out.println("a running");
-                        }else
-                            more = false;*/
+
                     } while (more);
                 } else
                     break;
-                //System.out.println(line);
                 switch (line) {
                     case "connect":
                         connect();
