@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 public class FirstFragment extends Fragment {
     private final CpuInfo cpuInfo = new CpuInfo();
@@ -20,8 +19,6 @@ public class FirstFragment extends Fragment {
 
     private static Connect connect;
     private static Thread connectThread;
-
-    private FragmentManager fragmentManager;
 
     //start screen
     private EditText editDeviceName;
@@ -63,11 +60,8 @@ public class FirstFragment extends Fragment {
     public EditText getEditPort(){
         return editPort;
     }
-    public Connect getConnect() {
-        return connect;
-    }
-    public CpuInfo getCpuInfo() {
-        return cpuInfo;
+    public Client getClient(){
+        return connect.getClient();
     }
 
     /************** Setter **************/
@@ -107,7 +101,6 @@ public class FirstFragment extends Fragment {
         initializeView(view);
 
         initializeButton();
-
     }
 
     /**
@@ -146,15 +139,19 @@ public class FirstFragment extends Fragment {
             if(editDeviceName.getText().toString().equals("")){
                 deviceName = reqString + "/../";
             }else{
-                deviceName = editDeviceName.getText().toString() + "/../(" + reqString + ")";
+                deviceName = editDeviceName.getText().toString() + " (" + reqString + ")";
             }
-            /*fragmentManager = getActivity().getSupportFragmentManager();
-            NavHostFragment.findNavController(fragmentManager.getPrimaryNavigationFragment()).navigate(R.id.action_firstFragment_to_secondFragment);//*/
-            //Log.d("main-thread", "vor new Connect: " + (Looper.getMainLooper().getThread() == Thread.currentThread()));
-            connect = new Connect(getActivity(), this, secondFragment, cpuInfo);
-            connectThread = new Thread(connect);
-            connectThread.start();
+            initializeConnect();
         });
+    }
+
+    /**
+     * initializeConnect()
+     */
+    private void initializeConnect(){
+        connect = new Connect(getActivity(), this, secondFragment, cpuInfo);
+        connectThread = new Thread(connect);
+        connectThread.start();
     }
 
     /**
@@ -162,16 +159,12 @@ public class FirstFragment extends Fragment {
      */
     private void deleteButton(){
         btnDelete.setOnClickListener(v ->{
-            String strIp1 = "192";      // ""
-            String strIp2 = "168";      // ""
-            String strIp3 = "178";      // ""
-            String strIp4 = "45";       // ""
-            String strPort = "5000";    // ""
+            String strPort = "5000";
             editDeviceName.setText("");
-            editIP_1.setText(strIp1);
-            editIP_2.setText(strIp2);
-            editIP_3.setText(strIp3);
-            editIP_4.setText(strIp4);
+            editIP_1.setText("");
+            editIP_2.setText("");
+            editIP_3.setText("");
+            editIP_4.setText("");
             editPort.setText(strPort);
             Toast toast = Toast.makeText(getActivity(), "Delete", Toast.LENGTH_SHORT);
             toast.show();

@@ -6,6 +6,11 @@ import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
 
+    //Used to load the 'native-lib library on application startup.
+    static {
+        System.loadLibrary("native-lib");
+    }
+
     /**
      * onCreate()
      * @param savedInstanceState Bundle
@@ -14,15 +19,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
-
-    /**
-     * onUserLeaveHint()
-     */
-    @Override
-    protected void onUserLeaveHint() {
-        // When user presses home page
-        super.onUserLeaveHint();
     }
 
     /**

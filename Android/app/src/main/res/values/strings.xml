@@ -10,11 +10,7 @@
     <string name="_0">0</string>
     <string name="_1">1</string>
     <string name="port">Port</string>
-    <string name="_192">192</string>    <!-- kann am Ende gelöscht werden-->
-    <string name="_168">168</string>    <!-- kann am Ende gelöscht werden-->
-    <string name="_178">178</string>    <!-- kann am Ende gelöscht werden-->
-    <string name="_45">45</string>      <!-- kann am Ende gelöscht werden-->
-    <string name="_5000">5000</string>  <!-- kann am Ende gelöscht werden-->
+    <string name="_5000">5000</string>
     <string name="server_port">Server Port</string>
     <string name="connect">Connect</string>
     <string name="delete">Delete</string>
@@ -27,7 +23,6 @@
     <string name="memory_usage">Memory Usage:</string>
     <string name="network_usage">Network Usage:</string>
     <string name="number_threads">Number of Threads:</string>
-    <string name="clients">Clients: 0/0</string>
     <string name="device_name_str">Your device name:</string>
     <string name="no_calculation_running">no calculation running</string>
     <string name="calculation_started">calculation started</string>

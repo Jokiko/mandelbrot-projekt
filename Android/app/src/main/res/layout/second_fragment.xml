@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Lars Klee -->
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_layout"
@@ -24,6 +22,15 @@
             android:text="@string/cpu_usage"
             android:textAlignment="center"
             android:textSize="24sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:weightSum="1">
         <TextView
             android:id="@+id/txtMemoryUsage"
             android:layout_width="wrap_content"
@@ -59,29 +66,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textAlignment="center"
-            android:textSize="24sp"/>
-    </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:weightSum="1">
-            <TextView
-                android:id="@+id/txtAnzThreads"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/number_threads"
-                android:textAlignment="center"
-                android:textSize="24sp"/>
-        <TextView
-            android:id="@+id/txtAnzClients"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/clients"
             android:textAlignment="center"
             android:textSize="24sp"/>
     </LinearLayout>

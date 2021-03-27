@@ -19,7 +19,7 @@ public class Client {
     private static Socket socket;
 
     /************** Getter **************/
-    public static Socket getSocket() {
+    public Socket getSocket() {
         return socket;
     }
 
@@ -36,17 +36,29 @@ public class Client {
     }
 
     /**
+     * run()
+     */
+    public void run() {
+        try {
+            InetAddress serverAdr = InetAddress.getByName(ip);
+            socket = new Socket(serverAdr, port);
+            connect.setConnected(true);
+        } catch (Exception e) {
+            connect.setConnected(false);
+            Log.e("Socket_Error", "" + e);
+        }
+    }
+
+    /**
      * sendMessageRunnable()
      * @param type String
      * @param content String
      * @return runnable Runnable
      */
-    private static Runnable sendMessageRunnable(String type, String content){
+    private Runnable sendMessageRunnable(String type, String content){
         return () -> {
             try {
                 String message = type + "/.../" + content;
-                Log.d("sendMessage", "message:" + message);
-                //Log.d("Socket", "vor mBufferOut: " + (socket != null));
                 mBufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
                 mBufferOut.println(message);
             } catch (IOException e) {
@@ -61,7 +73,7 @@ public class Client {
      * @param type String
      * @param content String
      */
-    public synchronized static void sendMessage(String type, String content) {
+    public synchronized void sendMessage(String type, String content) {
         new Thread(sendMessageRunnable(type, content)).start();
     }
 
@@ -70,10 +82,9 @@ public class Client {
      * @param message String
      * @return runnable Runnable
      */
-    private static Runnable sendMessageRunnable(String message){
+    private Runnable sendMessageRunnable(String message){
         return () -> {
             try {
-                Log.d("sendMessage", "message:" + message);
                 mBufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
                 mBufferOut.println(message);
             } catch (IOException e) {
@@ -87,7 +98,7 @@ public class Client {
      * Sends the message entered by client to the server
      * @param message String
      */
-    public synchronized static void sendMessage(String message) {
+    public synchronized void sendMessage(String message) {
         new Thread(sendMessageRunnable(message)).start();
     }
 
@@ -99,29 +110,11 @@ public class Client {
         if (mBufferOut != null) {
             mBufferOut.flush();
             mBufferOut.close();
+            mBufferOut = null;
         }
-        mBufferOut = null;
         try {
             socket.close();
         }catch(IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * run()
-     */
-    public void run() {
-        try {
-            //TODO InetAddress.getByName(); anpassen
-            InetAddress serverAdr = InetAddress.getByName("192.168.178.47");
-            //InetAddress serverAdr = InetAddress.getByName(ip);
-            //Log.d("Socket", "vor: " + (socket != null));
-            socket = new Socket(serverAdr, port);
-            //Log.d("Socket", "nach: " + (socket != null));
-            connect.setConnected(true);
-        } catch (Exception e) {
-            connect.setConnected(false);
             e.printStackTrace();
         }
     }
