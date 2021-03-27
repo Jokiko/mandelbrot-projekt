@@ -2,7 +2,6 @@ package src.Server;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 
@@ -30,9 +29,6 @@ public class WebsocketThread implements Runnable {
     private int x = 0;
     private int y = 0;
     private int itr = 0;
-    private int failsafe;
-    private int plotCount = 0;
-    private boolean overflow = false;
 
     public WebsocketThread(Socket socket, Server server, String name) {
 
@@ -45,7 +41,7 @@ public class WebsocketThread implements Runnable {
         disconnected = false;
 
         initializeStreams();
-        sendMessage("size/.../"+server.getMANDELBROT_PANEL_WIDTH()+"/.../"+server.getMANDELBROT_PANEL_HEIGHT());
+        sendMessage("size/.../"+server.getMandelbrotWidth()+"/.../"+server.getMandelbrotHeight());
     }
 
     private void initializeStreams() {
@@ -55,7 +51,6 @@ public class WebsocketThread implements Runnable {
             writer = new PrintWriter(socket.getOutputStream());
             dout = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -119,11 +114,8 @@ public class WebsocketThread implements Runnable {
             dout.write(reply, 0, reply.length);
             dout.flush();
 
-        } catch (SocketException exception) {
+        } catch (Exception exception) {
             exception.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-
         }
     }
 
@@ -229,7 +221,6 @@ public class WebsocketThread implements Runnable {
                     case "s":
                         return;
                     case "plot":
-                        plotCount = 1;
                         break;
                     default:
                         plot(line);
@@ -255,106 +246,27 @@ public class WebsocketThread implements Runnable {
             }
             disconnected = true;
             close();
-            server.disconnect();
+            server.disconnect("WebSocket");
         }
     }
     private void sendTask() throws IOException {
         task = server.getTask();
         if (task == null) {
-            sendMessage("noTask");
             return;
         }
-        /*sendMessage("task");
-        int getY =  task.getY();
-        //sendMessage(String.valueOf(getY));
-        //receiveMessage();
-        double xMove =  task.getXMove();
-        //sendMessage(String.valueOf(xMove));
-        //receiveMessage();
-        double yMove = task.getYMove();
-        //sendMessage(String.valueOf(yMove));
-        //receiveMessage();
-        double zoom = task.getZoom();
-        //receiveMessage();
-        int itr = task.getItr();
-        //System.out.println("Iterationen: "+ itr);
-        //sendMessage(String.valueOf(itr));*/
 
-        String infos = "task/.../"+task.getY() +"/.../"+task.getXMove()+"/.../"+task.getYMove()+"/.../"+task.getZoom()+"/.../"+task.getItr();
+        String infos = "task/.../" + task.getY() + "/.../" + task.getXMove() + "/.../" + task.getYMove() + "/.../" + task.getZoom() + "/.../" + task.getItr();
         sendMessage(infos);
 
     }
     private synchronized void plot(String compare) throws IOException {
         int colorItr = 20;
-        /*if(compare.equals("")){
-            switch(plotCount) {
-                //verlorene Nachricht ist "task"
-                case 0:
-                    if (x ==server.getMANDELBROT_PANEL_WIDTH()-1 || (overflow && x == 0)){
-                        server.setImage();
-                        sendTask();
-                        overflow = false;
-                        System.out.println("Sende Ersatztask");
-                    }
-                    break;
-                //verlorene Nachricht ist x-Wert
-                case 1:
-                    if(x < server.getMANDELBROT_PANEL_WIDTH()-1){
-                        x++;
-                        overflow = false;
-                    }
-                    else {
-                        x = 0;
-                        overflow = true;
-                    }
-                    System.out.println("Schummel x bei: " + x);
-                    plotCount++;
-                    break;
-                //verlorenene Nachricht ist y-Wert
-                case 2:
-                    if(x == 0 && overflow) y++;
-                    System.out.println("Schummel y bei: " + y);
-                    plotCount++;
-                    break;
-                //verlorene Nachricht ist itr-Wert
-                case 3:
-                    System.out.println("failsafe ist: "+ failsafe);
-                    server.setRGB(x, y, failsafe | (failsafe << colorItr));
-                    plotCount = 0;
-            }
-            return;
-        }
-        switch(plotCount) {
-            case 1:
-                x = Integer.parseInt(compare);
-                plotCount++;
-                break;
-            case 2:
-                y = Integer.parseInt(compare);
-                plotCount++;
-                break;
-            case 3:
-                itr = Integer.parseInt(compare);
-                failsafe = itr;
-                server.setRGB(x, y, itr | (itr << colorItr));
-                plotCount = 0;
-        }*/
         if(compare.equals("")||compare.equals("end")){
             System.out.println("Leer");
         }
-        /*String[] plotti = compare.split("/.../");
-        try {
-            x = Integer.parseInt(plotti[0]);
-            y = Integer.parseInt(plotti[1]);
-            itr = Integer.parseInt(plotti[2]);
-            server.setRGB(x, y, itr | (itr << colorItr));
-        }
-        catch(NumberFormatException nFe){
-            System.out.println("NumberFormatExpecption");
-        }*/
         String[] plotti = compare.split("/.../");
         try {
-            for (int i = 0; i < server.getMANDELBROT_PANEL_WIDTH()*3; i = i+3) {
+            for (int i = 0; i < server.getMandelbrotWidth()*3; i = i+3) {
                 x = Integer.parseInt(plotti[i]);
                 y = Integer.parseInt(plotti[i+1]);
                 itr = Integer.parseInt(plotti[i+2]);
@@ -369,22 +281,6 @@ public class WebsocketThread implements Runnable {
             server.addToTaskList(task);
             sendTask();
         }
-        /*if (!compare.equals("")) {
-            System.out.println("compare:");
-            System.out.println(compare);
-            BufferedReader reader = new BufferedReader(new StringReader(compare));
-            System.out.println(reader.readLine());
-            y = Integer.parseInt(reader.readLine());
-            String ite = reader.readLine();
-            x = 0;
-            while (ite != null) {
-                System.out.println(ite);
-            itr = Integer.parseInt(ite);
-            server.setRGB(x, y, itr | (itr << colorItr));
-            x++;
-                ite = reader.readLine();
-            }
-        }*/
     }
     private void close() {
         System.out.println(Thread.currentThread().getName() + ": Connection Closing...");

@@ -115,17 +115,6 @@ public class ServerView extends JFrame {
 	private final int GRID_WIDTH = 100;
 	private final int GRID_HEIGHT = 100;
 
-	/******** Getter ********/
-	public int getMANDELBROT_PANEL_WIDTH() {
-		return MANDELBROT_PANEL_WIDTH;
-	}
-	public int getMANDELBROT_PANEL_HEIGHT() {
-		return MANDELBROT_PANEL_HEIGHT;
-	}
-	public MandelbrotPanel getMandelbrotPanel(){
-		return mandelbrotPanel;
-	}
-
 	/**
 	 * Creates a new ServerView.
 	 */
@@ -254,13 +243,7 @@ public class ServerView extends JFrame {
 		buttonPanel.disableAll();
 	}
 
-	public void setImage(MandelbrotImage image) {
-		mandelbrotPanel.setImage(image);
-	}
-
-	public void setNumberOfClients(int number) {
-		monitorPanel.setNumberOfClients(number);
-	}
+	/*-Getter-Methods-------------------------------------------------*/
 
 	public int getMandelbrotWidth() {
 		return MANDELBROT_PANEL_WIDTH;
@@ -269,5 +252,32 @@ public class ServerView extends JFrame {
 	public int getMandelbrotHeight() {
 		return MANDELBROT_PANEL_HEIGHT;
 	}
+
+	public MandelbrotPanel getMandelbrotPanel(){
+		return mandelbrotPanel;
+	}
+
+	/*----------------------------------------------------------------*/
+
+	/*-Setter-Methods-------------------------------------------------*/
+
+	public void setImage(MandelbrotImage image) {
+		mandelbrotPanel.setImage(image);
+	}
+
+	public void setNumberOfClients(int number) {
+		monitorPanel.setNumberOfClients(number);
+	}
+	public void setNumberOfAndroidClients(int number) {
+		monitorPanel.setNumberOfAndroidClients(number);
+	}
+	public void setNumberOfCudaClients(int number) {
+		monitorPanel.setNumberOfCudaClients(number);
+	}
+	public void setNumberOfWebSocketClients(int number) {
+		monitorPanel.setNumberOfWebSocketClients(number);
+	}
+
+	/*----------------------------------------------------------------*/
 
 }

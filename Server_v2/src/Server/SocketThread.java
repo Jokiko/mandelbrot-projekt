@@ -88,14 +88,14 @@ public class SocketThread implements Runnable {
 					task = null;
 					server.setImage();
 					break;
+				case "frame":
+					server.setImage();
+					break;
 				case "width":
 					sendWidth();
 					break;
 				case "height":
 					sendHeight();
-					break;
-				case "frame":
-					server.setImage();
 					break;
 				case "s":
 					return;
@@ -110,7 +110,14 @@ public class SocketThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
+	private void sendHeight() throws IOException {
+		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(server.getMandelbrotHeight()).array());
+	}
+
+	private void sendWidth() throws IOException {
+		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(server.getMandelbrotWidth()).array());
+	}
 
 	public void start() {
 		sendMessage("First contact successful\n\0");
@@ -130,16 +137,8 @@ public class SocketThread implements Runnable {
 			}
 			disconnected = true;
 			close();
-			server.disconnect();
+			server.disconnect("Cuda");
 		}
-	}
-	
-	private void sendWidth() throws IOException {
-		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(server.getServerView().getMANDELBROT_PANEL_WIDTH()).array());
-	}
-	
-	private void sendHeight() throws IOException {
-		sendMessage(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(server.getServerView().getMANDELBROT_PANEL_HEIGHT()).array());
 	}
 
 	private void sendTask() throws IOException {
@@ -176,10 +175,8 @@ public class SocketThread implements Runnable {
 		x = Integer.parseInt(compare.trim());
 		y = Integer.parseInt(reader.readLine());
 		itr = Integer.parseInt(reader.readLine());
-		
+
 		server.setRGB(x, y, itr);
-
-
 	}
 
 	private void close() {

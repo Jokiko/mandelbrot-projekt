@@ -22,7 +22,7 @@ public class AndroidSocketThread implements Runnable {
     private boolean connected;
 
     public AndroidSocketThread(Socket socket, Server server, String name) {
-        System.out.println("AndroidSocket");
+        System.out.println("Name: " + name);
 
         this.socket = socket;
         this.server = server;
@@ -106,9 +106,8 @@ public class AndroidSocketThread implements Runnable {
 
     private void connect() throws IOException {
         connected = true;
-        System.out.println("Size: " + server.getMANDELBROT_PANEL_WIDTH() + "x" + server.getMANDELBROT_PANEL_HEIGHT());
-        int width = server.getMANDELBROT_PANEL_WIDTH();
-        int height = server.getMANDELBROT_PANEL_HEIGHT();
+        int width = server.getMandelbrotWidth();
+        int height = server.getMandelbrotHeight();
         sendMessage("Connect success/.../" + width + "/.../" + height);
         server.connect();
     }
@@ -120,7 +119,7 @@ public class AndroidSocketThread implements Runnable {
             }
             disconnected = true;
             close();
-            server.disconnect();
+            server.disconnect("Android");
         }
     }
 
@@ -164,7 +163,7 @@ public class AndroidSocketThread implements Runnable {
     }
 
     private void close() {
-        System.out.println(Thread.currentThread().getName() + ": Connection Closing...");
+        System.out.println("\n" + Thread.currentThread().getName() + ": Connection Closing...");
         thread.interrupt();
         try {
             bufferedReader.close();

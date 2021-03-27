@@ -1,5 +1,7 @@
 package src.Server;
 
+import src.View.ServerView;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,17 +20,20 @@ import java.util.regex.Pattern;
 public class ConnectionThread implements Runnable {
 
 	private final ServerSocket serverSocket;
+	private final ServerView userInterface;
 	private final Server server;
 	private final Thread thread;
 	private boolean running = true;
 
 	private String clientType;
+	private String androidClientName;
 	private String data;
 	private OutputStream out;
 
-	public ConnectionThread(ServerSocket serverSocket, Server server) {
+	public ConnectionThread(ServerSocket serverSocket, Server server, ServerView userInterface) {
 		this.serverSocket = serverSocket;
 		this.server = server;
+		this.userInterface = userInterface;
 		this.thread = new Thread(this);
 	}
 
@@ -44,12 +49,15 @@ public class ConnectionThread implements Runnable {
 
 		switch(clientType){
 			case "WebSocket":
+				userInterface.setNumberOfWebSocketClients(1);
 				server.createWebSocketThread(clientSocket, "WebSocket_" + System.nanoTime());
 				break;
 			case "Android":
-				server.createAndroidSocketThread(clientSocket, "Android_Socket_" +  + System.nanoTime());
+				userInterface.setNumberOfAndroidClients(1);
+				server.createAndroidSocketThread(clientSocket, androidClientName +  + System.nanoTime());
 				break;
 			case "Cuda":
+				userInterface.setNumberOfCudaClients(1);
 				server.createSocketThread(clientSocket, "Cuda_" + System.nanoTime());
 				break;
 		}
@@ -70,12 +78,15 @@ public class ConnectionThread implements Runnable {
 
 			if (tmp.equals("type")) {
 				clientType = tokenizer.nextToken();
+				if(clientType.equals("Android")){
+					androidClientName = tokenizer.nextToken();
+				}
 			} else {
 				clientType = "WebSocket";
 				data = tmp + scan.useDelimiter("\\r\\n\\r\\n").next();
 				webSocketHandshake(clientSocket, data);
 			}
-			System.out.println("ClientType: " + clientType);
+			System.out.println("\nClientType: " + clientType);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
