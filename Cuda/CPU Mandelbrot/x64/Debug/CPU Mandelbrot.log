@@ -1,0 +1,9 @@
+﻿  Client.cpp
+C:\Users\randy\source\repos\Jokiko\mandelbrot-projekt\Cuda\Cuda\Mandelbrotprojekt\Client.cpp(113,66): warning C4267: "Argument": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\randy\source\repos\Jokiko\mandelbrot-projekt\Cuda\Cuda\Mandelbrotprojekt\Client.cpp(129,54): warning C4267: "Argument": Konvertierung von "size_t" nach "int", Datenverlust möglich
+  CPUCalculator.cpp
+C:\Users\randy\source\repos\Jokiko\mandelbrot-projekt\Cuda\Cuda\Mandelbrotprojekt\CPUCalculator.cpp(57,22): warning C4244: "Argument": Konvertierung von "double" in "int", möglicher Datenverlust
+  CPUMain.cpp
+  Code Analysis für C/C++ wird ausgeführt...
+  Code wird generiert...
+  CPU Mandelbrot.vcxproj -> C:\Users\randy\source\repos\Jokiko\mandelbrot-projekt\Cuda\Cuda\x64\Debug\CPU Mandelbrot.exe

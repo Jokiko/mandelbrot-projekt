@@ -26,6 +26,9 @@
 		
 		var socket;
 		
+		var ip = "136.199.4.3";
+		var port = "5000";
+		
 	
 		
 	  
@@ -46,9 +49,10 @@
 		
 		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
 		//var socket = new WebSocket('ws://localhost:5000');
-		socket = new WebSocket('ws://169.254.108.186:5000');
-		//var socket = new WebSocket('ws://136.199.4.117:5000');
+		//socket = new WebSocket('ws://169.254.108.186:5000');
+		//socket = new WebSocket('ws://136.199.4.64:5000');
 		//socket = new WebSocket('ws://'+input.value);
+		socket = new WebSocket('ws://'+ip+':'+port);
 		
 	  
 		

@@ -9,8 +9,10 @@ import java.util.regex.Pattern;
 public class CpuInfo {
 
     /**
+     * calculates CPU-Usage
      * http://www.java2s.com/Code/Android/Hardware/GetCPUFrequencyCurrent.htm
-     * berechnet CPU-Usage
+     * http://www.java2s.com/Code/Android/Hardware/GetCPUFrequencyMin.htm
+     * http://www.java2s.com/Code/Android/Hardware/GetCPUFrequencyMax.htm
      */
     public double getCPUFrequencyCurrent(){
         double sum = 0.0;
@@ -56,12 +58,12 @@ public class CpuInfo {
      * Benötigt: Fähigkeit, das Dateisystem unter "/sys/devices/system/ cpu" zu durchsuchen
      * @return Die Anzahl der Kerne oder 1, wenn das Ergebnis nicht erhalten werden konnte
      */
-    public int getNumCores() {
+    private int getNumCores() {
         // Private Klasse, um nur CPU-Geräte in der Verzeichnisliste anzuzeigen
         class CpuFilter implements FileFilter {
             @Override
             public boolean accept (File pathname) {
-                // Überprüfe, ob der Dateiname "cpu" ist, gefolgt von einer einstelligen Zahl
+                // Überprüfe, ob der Dateiname "cpu" ist, gefolgt von einer Zahl
                 return Pattern.matches("cpu[0-9]+", pathname.getName());
             }
         }
@@ -70,13 +72,10 @@ public class CpuInfo {
             File dir = new File ("/sys/devices/system/cpu/");
             // Filtern, um nur die Geräte aufzulisten, die uns interessieren
             File[] files = dir.listFiles(new CpuFilter());
-            // Anzahl der Kerne zurückgeben (virtuelle CPU-Geräte)
             return files.length;
         } catch (Exception e) {
-            // Ausnahme drucken
             e.printStackTrace();
             // Standardmäßig wird 1 Core zurückgegeben
-            //cpu = 1;
             return 1;
         }
     }

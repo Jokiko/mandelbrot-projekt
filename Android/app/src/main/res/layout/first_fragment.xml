@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Lars Klee -->
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_layout"
@@ -63,7 +61,6 @@
                 android:ems="10"
                 android:hint="@string/_127"
                 android:inputType="datetime"
-                android:text="@string/_192"
                 android:textAlignment="center"
                 android:textSize="24sp"
                 android:autofillHints="" />
@@ -81,7 +78,6 @@
                 android:ems="10"
                 android:hint="@string/_0"
                 android:inputType="datetime"
-                android:text="@string/_168"
                 android:textAlignment="center"
                 android:textSize="24sp"
                 android:autofillHints=""/>
@@ -99,7 +95,6 @@
                 android:ems="10"
                 android:hint="@string/_0"
                 android:inputType="datetime"
-                android:text="@string/_178"
                 android:textAlignment="center"
                 android:textSize="24sp"
                 android:autofillHints=""/>
@@ -119,7 +114,6 @@
                 android:ems="10"
                 android:hint="@string/_1"
                 android:inputType="datetime"
-                android:text="@string/_45"
                 android:textAlignment="center"
                 android:textSize="24sp"
                 android:autofillHints=""/>
