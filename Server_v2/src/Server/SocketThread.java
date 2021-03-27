@@ -77,7 +77,6 @@ public class SocketThread implements Runnable {
 			while (((input = (reader.readLine())) != null) && !Thread.currentThread().isInterrupted()) {
 				token = new StringTokenizer(input, "/.");
 				compare = token.nextElement().toString();
-
 				switch (compare) {
 				case "connect":
 					connect();
@@ -100,6 +99,8 @@ public class SocketThread implements Runnable {
 					break;
 				case "s":
 					return;
+				case "disconnect":
+					disconnect();
 				default:
 					plot(input);
 				}
@@ -172,11 +173,13 @@ public class SocketThread implements Runnable {
 		int x;
 		int y;
 		int itr;
-		x = Integer.parseInt(compare);
+		x = Integer.parseInt(compare.trim());
 		y = Integer.parseInt(reader.readLine());
 		itr = Integer.parseInt(reader.readLine());
 		
 		server.setRGB(x, y, itr);
+
+
 	}
 
 	private void close() {
