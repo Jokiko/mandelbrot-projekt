@@ -4,10 +4,6 @@
 	  <title>Test Client</title>
    </head>
    <body>
-		<form action="" onsubmit="connectToServer(event)">
-            <input type="text" id="messageText" autocomplete="off"/>
-            <button>Verbinden</button>
-        </form>
    
       <script>
 		
@@ -26,12 +22,9 @@
 		
 		var socket;
 		
-		var ip = "136.199.4.3";
+		var ip = "169.254.108.186";
 		var port = "5000";
-		
-	
-		
-	  
+		 
 		//Import der Mandelbrotfunktion aus dem WebAssembly Modul
 		let mandelbrot;
 		fetch("mandelbrot.wasm")
@@ -48,10 +41,6 @@
 		}
 		
 		//WebSocket Objekt zum Verbindungsaufbau zur IP/URL, WebSocket hat geringe Latenz
-		//var socket = new WebSocket('ws://localhost:5000');
-		//socket = new WebSocket('ws://169.254.108.186:5000');
-		//socket = new WebSocket('ws://136.199.4.64:5000');
-		//socket = new WebSocket('ws://'+input.value);
 		socket = new WebSocket('ws://'+ip+':'+port);
 		
 	  
@@ -59,9 +48,8 @@
 	 
 		//Funktion bei Verbindungsaufbau
 		socket.onopen = function (){
-			console.log("Verbindung aufgebaut.\n");
+			console.log("Verbindung aufgebaut.");
 			//Sendet Server Nachricht
-			//socket.send("Ping\n"); 
 			socket.send("connect");
 			
 			socket.send("task");
@@ -72,9 +60,7 @@
 			console.log("WebSocket Error " + error);
 		};
 		
-		
-
-		
+	
 		//callback-Funktion wird gerufen, wenn eine neue Websocket-Nachricht eintrifft
 		socket.onmessage = function (messageEvent){
 			console.log("Erhalte Nachricht von Server: " + messageEvent.data);
@@ -87,47 +73,37 @@
 			//Task entgegennehmen
 			case "task":
 				console.log("Task entgegen genommen");
-				//socket.send("s");
+
 				getY=res[1];
 				xMove=res[2];
 				yMove=res[3];
 				zoom=res[4];
 				iterations=res[5];
-					//iterations = messageEvent.data;
-					var message = "";
-					console.log("Task mit Y: "+ getY +", xMove: " + xMove + ", yMove: " + yMove + ", zoom: " + zoom + ", iterations: " + iterations);
+				var message = "";
+				console.log("Task mit Y: "+ getY +", xMove: " + xMove + ", yMove: " + yMove + ", zoom: " + zoom + ", iterations: " + iterations);
 
-					for(var x = 0; x < width; x++){
-						//Wert der Mandelbrotmenge durch importiertes WebAssembly Modul
-						var erg = mandelbrot(x, getY, width, height, xMove, yMove, zoom, iterations);
-						//console.log(erg);
+				for(var x = 0; x < width; x++){
+					//Wert der Mandelbrotmenge durch importiertes WebAssembly Modul
+					var erg = mandelbrot(x, getY, width, height, xMove, yMove, zoom, iterations);
+					//console.log(erg);
 
-						//socket.send("plot");
-						/*socket.send(x);
-						socket.send(getY);
-						socket.send(erg);*/
-						//letzter Wert wird am Ende ohne Trennsymbol verschickt
-						if(x < width-1){
-							message += x+"/.../"+getY+"/.../"+erg+"/.../";
-						}
-						else{
-							message += x+"/.../"+getY+"/.../"+erg;
-						}
-						//socket.send(message);
-						//message = "";
+					//letzter Wert wird am Ende ohne Trennsymbol verschickt
+					if(x < width-1){
+						message += x+"/.../"+getY+"/.../"+erg+"/.../";
 					}
-					socket.send("plot");
+					else{
+						message += x+"/.../"+getY+"/.../"+erg;
+					}
+				
+				}
+				socket.send("plot");
 		
-					socket.send(message);
-					task = 0;
-					taskCounter++;
-					console.log("Task Nr. "+taskCounter+ " erfolgreich berechnet.");
-					x = 0;
-		
-					socket.send("tick");
-					
-					//socket.send("task");
-					
+				socket.send(message);
+				task = 0;
+				taskCounter++;
+				console.log("Task Nr. "+taskCounter+ " erfolgreich berechnet.");
+				x = 0;	
+				socket.send("tick");	
 				break;
 			case "tickCheck":
 				//socket.send("task");

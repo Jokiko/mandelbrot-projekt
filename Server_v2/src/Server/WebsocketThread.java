@@ -3,7 +3,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
-import java.util.StringTokenizer;
+import java.util.Objects;
 import src.Mandelbrot.Task;
 public class WebsocketThread implements Runnable {
     private final Socket socket;
@@ -11,19 +11,11 @@ public class WebsocketThread implements Runnable {
     private BufferedReader reader;
     private PrintWriter writer;
     private DataOutputStream dout;
-    private static PrintWriter os = null;
     private static InputStream is = null;
-    private static OutputStream out = null;
     private final Thread thread;
     private Task task;
     private boolean disconnected;
     private boolean connected;
-    private int x = 0;
-    private int y = 0;
-    private int itr = 0;
-    private int failsafe;
-    private int plotCount = 0;
-    private boolean overflow = false;
 
     public WebsocketThread(Socket socket, Server server, String name) {
         this.socket = socket;
@@ -96,18 +88,15 @@ public class WebsocketThread implements Runnable {
             dout.flush();
         } catch (SocketException exception) {
             exception.printStackTrace();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
     //Lesen aus https://stackoverflow.com/questions/43163592/standalone-websocket-server-without-jee-application-server
     private void receiveMessage() {
-        StringTokenizer token;
-        String compare;
         try {
             is = socket.getInputStream();
-            os = new PrintWriter(socket.getOutputStream());
-            out = socket.getOutputStream();
+
         } catch (Exception e) {
             System.out.println("Error in serverThreadWebSocket");
         }
@@ -130,69 +119,60 @@ public class WebsocketThread implements Runnable {
                 if (len != -1) {
                     boolean more = false;
                     int totalLength = 0;
-                    do {
-                        int j = 0;
-                        int i = 0;
-                        if (!isSplit) {
-                            byte rLength = 0;
-                            int rMaskIndex = 2;
-                            int rDataStart = 0;
-                            //Kein Check notwendig, da von Text ausgegangen wird
-                            byte data = b[1];
-                            byte op = (byte) 127;
-                            // Check, wo die Laenge geschrieben ist, wenn <=125 dann ist das die Laenge
-                            rLength = (byte) (data & op);
-                            length = (int) rLength;
-                            // wenn 126, dann steht in den naechsten 16 bit die Laenge
-                            if (rLength == (byte) 126) {
-                                rMaskIndex = 4;
-                                length = Byte.toUnsignedInt(b[2]) << 8;
-                                length += Byte.toUnsignedInt(b[3]);
-                            }
-                            // wenn 127, dann steht in den naechsten 64 bit die Laenge
-                            else if (rLength == (byte) 127)
-                                rMaskIndex = 10;
-                            //auf die Laenge folgt ein 4 bit langer mask key, der zum dekodieren benoetigt wird
-                            for (i = rMaskIndex; i < (rMaskIndex + 4); i++) {
-                                masks[j] = b[i];
-                                j++;
-                            }
-                            // auf den masking key folgen die verschluesselten Daten
-                            rDataStart = rMaskIndex + 4;
-                            message = new byte[length];
-                            totalLength = length + rDataStart;
-                            // Entschluesslung der Daten
-                            for (i = rDataStart, totalRead = 0; i<len && i < totalLength; i++, totalRead++) {
-                                message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
-                            }
-                        }else {
-                            for (i = 0; i<len && totalRead<length; i++, totalRead++) {
-                                message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
-                            }
-                            totalLength=i;
-                        }
-                        if (totalRead<length) {
-                            isSplit=true;
-                        }else {
-                            isSplit=false;
-                            //System.out.println(new String(message));
-                            line = new String(message,  StandardCharsets.UTF_8);
-                            b = new byte[8000];
-                        }
-                       /* if (totalLength < len) {
-                            more = true;
-                            for (i = totalLength, j = 0; i < len; i++, j++)
-                                b[j] = b[i];
-                            len = len - totalLength;
-                            System.out.println("a running");
-                        }else
-                            more = false;*/
 
-                    } while (more);
+                    int j = 0;
+                    int i = 0;
+                    if (!isSplit) {
+                        byte rLength = 0;
+                        int rMaskIndex = 2;
+                        int rDataStart = 0;
+                        //Kein Check notwendig, da von Text ausgegangen wird
+                        byte data = b[1];
+                        byte op = (byte) 127;
+                        // Check, wo die Laenge geschrieben ist, wenn <=125 dann ist das die Laenge
+                        rLength = (byte) (data & op);
+                        length = (int) rLength;
+                        // wenn 126, dann steht in den naechsten 16 bit die Laenge
+                        if (rLength == (byte) 126) {
+                            rMaskIndex = 4;
+                            length = Byte.toUnsignedInt(b[2]) << 8;
+                            length += Byte.toUnsignedInt(b[3]);
+                        }
+                        // wenn 127, dann steht in den naechsten 64 bit die Laenge
+                        else if (rLength == (byte) 127)
+                            rMaskIndex = 10;
+                        //auf die Laenge folgt ein 4 bit langer mask key, der zum dekodieren benoetigt wird
+                        for (i = rMaskIndex; i < (rMaskIndex + 4); i++) {
+                            masks[j] = b[i];
+                            j++;
+                        }
+                        // auf den masking key folgen die verschluesselten Daten
+                        rDataStart = rMaskIndex + 4;
+                        message = new byte[length];
+                        totalLength = length + rDataStart;
+                        // Entschluesslung der Daten
+                        for (i = rDataStart, totalRead = 0; i<len && i < totalLength; i++, totalRead++) {
+                            message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
+                        }
+                    }else {
+                        for (i = 0; i<len && totalRead<length; i++, totalRead++) {
+                            message[totalRead] = (byte) (b[i] ^ masks[totalRead % 4]);
+                        }
+                    }
+                    if (totalRead<length) {
+                        isSplit=true;
+                    }else {
+                        isSplit=false;
+                        //System.out.println(new String(message));
+                        line = new String(message,  StandardCharsets.UTF_8);
+                        b = new byte[8000];
+                    }
+
+
                 } else
                     break;
                 //System.out.println(line);
-                switch (line) {
+                switch (Objects.requireNonNull(line)) {
                     case "connect":
                         connect();
                         break;
@@ -205,13 +185,13 @@ public class WebsocketThread implements Runnable {
                     case "s":
                         return;
                     case "plot":
-                        plotCount = 1;
                         break;
                     default:
                         plot(line);
                 }
             }
-        } catch (IOException e) {
+        }
+        catch (Exception e){
             e.printStackTrace();
         }
     }
@@ -234,104 +214,25 @@ public class WebsocketThread implements Runnable {
             server.disconnect("WebSocket");
         }
     }
-    private void sendTask() throws IOException {
+    private void sendTask() {
         task = server.getTask();
         if (task == null) {
             sendMessage("noTask");
             return;
         }
-        /*sendMessage("task");
-        int getY =  task.getY();
-        //sendMessage(String.valueOf(getY));
-        //receiveMessage();
-        double xMove =  task.getXMove();
-        //sendMessage(String.valueOf(xMove));
-        //receiveMessage();
-        double yMove = task.getYMove();
-        //sendMessage(String.valueOf(yMove));
-        //receiveMessage();
-        double zoom = task.getZoom();
-        //receiveMessage();
-        int itr = task.getItr();
-        //System.out.println("Iterationen: "+ itr);
-        //sendMessage(String.valueOf(itr));*/
         String infos = "task/.../"+task.getY() +"/.../"+task.getXMove()+"/.../"+task.getYMove()+"/.../"+task.getZoom()+"/.../"+task.getItr();
         sendMessage(infos);
     }
-    private synchronized void plot(String compare) throws IOException {
-        int colorItr = 20;
-        /*if(compare.equals("")){
-            switch(plotCount) {
-                //verlorene Nachricht ist "task"
-                case 0:
-                    if (x ==server.getMANDELBROT_PANEL_WIDTH()-1 || (overflow && x == 0)){
-                        server.setImage();
-                        sendTask();
-                        overflow = false;
-                        System.out.println("Sende Ersatztask");
-                    }
-                    break;
-                //verlorene Nachricht ist x-Wert
-                case 1:
-                    if(x < server.getMANDELBROT_PANEL_WIDTH()-1){
-                        x++;
-                        overflow = false;
-                    }
-                    else {
-                        x = 0;
-                        overflow = true;
-                    }
-                    System.out.println("Schummel x bei: " + x);
-                    plotCount++;
-                    break;
-                //verlorenene Nachricht ist y-Wert
-                case 2:
-                    if(x == 0 && overflow) y++;
-                    System.out.println("Schummel y bei: " + y);
-                    plotCount++;
-                    break;
-                //verlorene Nachricht ist itr-Wert
-                case 3:
-                    System.out.println("failsafe ist: "+ failsafe);
-                    server.setRGB(x, y, failsafe | (failsafe << colorItr));
-                    plotCount = 0;
-            }
-            return;
-        }
-        switch(plotCount) {
-            case 1:
-                x = Integer.parseInt(compare);
-                plotCount++;
-                break;
-            case 2:
-                y = Integer.parseInt(compare);
-                plotCount++;
-                break;
-            case 3:
-                itr = Integer.parseInt(compare);
-                failsafe = itr;
-                server.setRGB(x, y, itr | (itr << colorItr));
-                plotCount = 0;
-        }*/
+    private synchronized void plot(String compare){
         if(compare.equals("")||compare.equals("end")){
             System.out.println("Leer");
         }
-        /*String[] plotti = compare.split("/.../");
-        try {
-            x = Integer.parseInt(plotti[0]);
-            y = Integer.parseInt(plotti[1]);
-            itr = Integer.parseInt(plotti[2]);
-            server.setRGB(x, y, itr | (itr << colorItr));
-        }
-        catch(NumberFormatException nFe){
-            System.out.println("NumberFormatExpecption");
-        }*/
         String[] plotti = compare.split("/.../");
         try {
             for (int i = 0; i < server.getMandelbrotWidth()*3; i = i+3) {
-                x = Integer.parseInt(plotti[i]);
-                y = Integer.parseInt(plotti[i+1]);
-                itr = Integer.parseInt(plotti[i+2]);
+                int x = Integer.parseInt(plotti[i]);
+                int y = Integer.parseInt(plotti[i + 1]);
+                int itr = Integer.parseInt(plotti[i + 2]);
                 server.setRGB(x, y, itr);
             }
             server.setImage();
@@ -343,22 +244,6 @@ public class WebsocketThread implements Runnable {
             server.addToTaskList(task);
             sendTask();
         }
-        /*if (!compare.equals("")) {
-            System.out.println("compare:");
-            System.out.println(compare);
-            BufferedReader reader = new BufferedReader(new StringReader(compare));
-            System.out.println(reader.readLine());
-            y = Integer.parseInt(reader.readLine());
-            String ite = reader.readLine();
-            x = 0;
-            while (ite != null) {
-                System.out.println(ite);
-            itr = Integer.parseInt(ite);
-            server.setRGB(x, y, itr | (itr << colorItr));
-            x++;
-                ite = reader.readLine();
-            }
-        }*/
     }
     private void close() {
         System.out.println(Thread.currentThread().getName() + ": Connection Closing...");
