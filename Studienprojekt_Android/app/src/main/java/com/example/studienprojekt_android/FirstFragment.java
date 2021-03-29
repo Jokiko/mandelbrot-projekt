@@ -137,7 +137,7 @@ public class FirstFragment extends Fragment {
                     + " " + Build.MODEL + " " + Build.VERSION.RELEASE
                     + " " + Build.VERSION_CODES.class.getFields()[android.os.Build.VERSION.SDK_INT].getName();
             if(editDeviceName.getText().toString().equals("")){
-                deviceName = reqString + "/../";
+                deviceName = reqString;
             }else{
                 deviceName = editDeviceName.getText().toString() + " (" + reqString + ")";
             }
