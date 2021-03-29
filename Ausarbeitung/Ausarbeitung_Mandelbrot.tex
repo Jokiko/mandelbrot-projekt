@@ -12,6 +12,8 @@
 \usepackage{adjustbox}
 \usepackage{float}
 \usepackage{csquotes}
+\usepackage{amssymb}
+\usepackage{amsmath}
 
 \restylefloat{table}
 
@@ -36,8 +38,16 @@
 Diese Arbeit entsteht im Rahmen des großen Studienprojektes bei der Professur Systemsoftware und Verteilte Systeme der Universität Trier.
 \subsection{Motivation}
 \subsection{Problemstellung}
+Die Mandelbrotmenge ist die Menge der komplexen Zahlen $c$, für die die durch die Iteration \begin{gather}
+z_{ 0 } = 0  \\
+z_{ n+1 } = z_{ n }^{ 2 } + c
+\end{gather}
+definierte Folge $(z_{ n })_{ n\in \mathbb{N} }$ beschränkt ist. Diese lässt sich auf der komplexen Ebene geometrisch interpretieren und bildet ein Fraktal. Weist man jedem Punkt auf der komplexen Ebene einen Pixel mit den entsprechenden Wert von $c$ zu, ergibt sich eine graphische Darstellung der Mandelbrotmenge. Liegt ein Punkt in der Mandelbrotmenge, so wird ein Pixel schwarz gefärbt, liegt er nicht in ihr, so hängt seine Farbe davon ab, wie schnell die Folge mit dem betreffenden $c$ gegen Unendlich strebt. Diese Berechnung ist äußerst rechenintensiv, jedoch kann jeder einzelne Pixel unabhängig voneinander berechnet werden. Somit bietet sich eine Berechnung der Mandelbrotmenge durch ein verteiltes System an.
 \subsection{Zielsetzung}
+Das Ziel dieser Arbeit ist es, ein verteiltes System zu entwickeln, welches in der Lage ist, die Mandelbrotmenge und dessen Zoomstufen performant zu berechnen. Zu diesem Zweck wird ein Server in Java programmiert, zu dem sich Clients verbinden und Rechenaufträge zur Berechnung der Mandelbrotmenge erhalten können. Der Server selbst rechnet dabei keinen einzigen Punkt der Mandelbrotmenge aus sondern empfängt die errechneten Ergebnisse der Clients und stellt diese daraufhin graphisch dar. Über die Nutzeroberfläche kann in die Mandelbrotmenge herein- und herausgezoomt werden, wodurch neue Rechenaufträge verteilt werden.  \par
+Die unterschiedlichen Clients werden jeweils unter unterschiedlichen Technologien programmiert. So wird der erste Client als Android-Anwendung entwickelt, der zweite Client als CUDA-Anwendung unter Zuhilfenahme des Grafikprozessors und der dritte Client als browserbasierte Anwendung mit JavaScript und WebAssembly. 
 \subsection{Gliederung}
+Die folgenden drei Kapitel beschreiben jeweils einen der entwickelten Clients und enthalten jeweils Unterkapitel, die die zugrundeliegenden Technologien, die Bedienung und letztlich die Entwicklung der Clients sowie der Probleme, die in dieser auftreten, beschreiben. Darauf folgt eine Dokumentation des Servers, die dessen Funktionsweise näher erläutert. Schlussendlich erfolgt eine Reflexion, in der sich damit auseinandergesetzt wird, inwiefern die Zielsetzung erfüllt werden konnte und ob die Verwendung der jeweiligen Technologien sich als Vorteil erwiesen hat oder nicht.
 
 
 \section{Android Client}
@@ -132,14 +142,14 @@ Wenn man die App deinstalliert und das Smartphone neu startet, dann wird bei And
 Messungen 2, 3 und 4 konnten bei der Server-Version 1.0 nicht gemessen werden, da man die Auflösung nicht anpassen konnte. Man kann allerdings gut erkennen, dass die benötigte Zeit von Server-Version 1.0 zu 2.0 stark reduziert wurde. Des Weiteren ist gut erkennbar, dass die Erhöhung der Iterations keine dramatischen Einfluss auf die Berechnungsdauer hat (Messungen 2 und 3), denn die benötigte Zeit hat sich im Gegensatz zur Iteration nicht vervierfacht. Einen viel größeren Einfluss auf die Zeit nimmt hingegen die größer der Auflösung (Messungen 3 und 4). Hier wurde jeweils die Höhe und die Breite verdoppelt, die Fläche wurde also vervierfacht, die benötigte Zeit hat sich circa verdoppelt.
 
 
-\section{Cuda Client}
+\section{CUDA Client}
 \subsection{Verwendete Technologie}
 \subsection{Bedienungsanleitung}
 \subsection{Entwicklung \& Probleme}
 
 \section{JavaScript Client}
 \subsection{Verwendete Technologie}
-Die eigentliche Berechnung der Mandelbrotmenge erfolgt nicht durch JavaScript sondern durch WebAssembly, ein Format binärer Anweisungen für Stack-basierte Virtuellen Maschinen. Als portables Kompilierungsziel höherer Programmiersprachen ermöglicht es den Einsatz dieser in Webanwendungen.  Auf dieses Projekt bezogen bedeutet das also, dass die Mandelbrotmenge in einer Funktion berechnet wird, die ursprünglich in C++ geschrieben wurde, jedoch im Browser ausgeführt werden kann, was wiederum zu einer schnelleren Ausführung als unter einer Berechnung in JavaScript selbst führt. Dazu muss die Datei „mandelbrot.cpp“, welche die benötigte Funktion „plot“ beinhaltet, in das WebAssembly-Format übersetzt werden. Zu diesem Zweck habe ich das online Tool „WebAssembly Explorer“   verwendet, welches die C++ Datei zunächst in das .wat-Textformat kompiliert und schließlich in die benötigte .wasm-Datei im Byteformat konvertiert. \par
+Die eigentliche Berechnung der Mandelbrotmenge erfolgt nicht durch JavaScript sondern durch WebAssembly, ein Format binärer Anweisungen für Stack-basierte Virtuellen Maschinen. Als portables Kompilierungsziel höherer Programmiersprachen ermöglicht es den Einsatz dieser in Webanwendungen.  Auf dieses Projekt bezogen bedeutet das also, dass die Mandelbrotmenge in einer Funktion berechnet wird, die ursprünglich in C++ geschrieben wurde, jedoch im Browser ausgeführt werden kann, was wiederum zu einer schnelleren Ausführung als unter einer Berechnung in JavaScript selbst führt. Dazu muss die Datei „mandelbrot.cpp“, welche die benötigte Funktion „plot“ beinhaltet, in das WebAssembly-Format übersetzt werden. Zu diesem Zweck wird das online Tool „WebAssembly Explorer“ verwendet, welches die C++ Datei zunächst in das .wat-Textformat kompiliert und schließlich in die benötigte .wasm-Datei im Byteformat konvertiert. \par
 Der damit gewonnene WebAssembly-Code wird im Client daraufhin über die fetch-API geladen und kompiliert. Anschließend wird eine ausführbare Instanz aus dem geladenen WebAssembly-Modul erstellt, aus der die Funktion „plot“ mit den benötigten Parametern in eine JavaScript-Variable exportiert werden kann. Diese Variable beinhaltet also die Instanz mit der exportierten Funktion, die von nun an durch JavaScript im Browser ausgeführt werden kann.
 Der Rest des Clients läuft auf Basis von JavaScript, was dementsprechend den Verbindungsaufbau mit dem Server sowie die Kommunikation mit diesem beinhaltet. Für diesen Zweck folgt der Client dem WebSocket-Protokoll, ein auf TCP basierendes Netzwerkprotokoll, welches eine Vollduplex-Verbindung zwischen dem Client und dem Server, welcher ebenfalls das WebSocket-Protokoll erfüllen muss, ermöglicht. \par
 Zu Beginn der Verbindung müssen Client und Server einen sogenannten Handshake durchführen. Dazu sendet der Client eine Anfrage an den Server, die Verbindung zu einer WebSocket-Verbindung zu erweitern. Eine solche Anfrage sieht beispielsweise folgendermaßen aus: \\ \\
@@ -186,7 +196,7 @@ Da hiermit Einstellungen verändert werden, empfiehlt es sich, nach Beenden der 
 	\item Gegebenenfalls die Konsole öffnen und überprüfen, ob der Client Aufträge entgegen genommen hat. Wenn nicht, die Seite neu laden, bis Aufträge erfolgreich entgegen genommen werden, und die Konsole schließen.
 \end{enumerate}
 \subsection{Entwicklung \& Probleme}
-Nach der Auswahl von JavaScript mit WebAssembly zur Ergänzung als die Technologie für diesen Client war der erste Schritt, erst einmal die Funktionsweise von WebAssembly kennenzulernen. Entsprechend war die erste Erwartungshaltung, dass die Entwicklung von WebAssembly-Modulen und deren funktionierende Einbindung in JavaScript, den kompliziertesten Teil der Cliententwicklung ausmachen würden. Daher entsteht zunächst ein kurzes Programm in C++, welches die Fakultät einer übergebenen Zahl berechnet und in den Client eingebunden wird. \\
+Nach der Auswahl von JavaScript mit WebAssembly zur Ergänzung als die Technologie für diesen Client war der erste Schritt, erst die Funktionsweise von WebAssembly kennenzulernen. Entsprechend war die erste Erwartungshaltung, dass die Entwicklung von WebAssembly-Modulen und deren funktionierende Einbindung in JavaScript, den kompliziertesten Teil der Cliententwicklung ausmachen würden. Daher entsteht zunächst ein kurzes Programm in C++, welches die Fakultät einer übergebenen Zahl berechnet und in den Client eingebunden wird. \\
 Über Konsoleneingaben und –ausgaben wird die Funktionalität erfolgreich getestet. Da die spätere Einbindung einer Funktion, die die Mandelbrotmenge berechnen soll, analog geschehen würde, ist die Verbindung zwischen Server und Client der nächste Schritt in der Entwicklung. \par
 
 Der erste Punkt, der sich als Problem herausstellt, ist die Tatsache, dass normale TCP Sockets, wie sie beispielsweise in dem Client unter Android oder Cuda verwendet werden, mit JavaScript nicht kompatibel sind. Daher muss eine Verbindung unter den oben genannten WebSocket geschehen, einer Technologie, in die sich ebenfalls zuerst eingelesen werden musste. Da am Anfang noch kein gemeinsamer Server besteht, auf den alle drei verschiedenen Arten von Clients zugreifen können, erfolgt der erste Verbindungstest mit einem kleinen Testserver, der in Node.js geschrieben ist. Die Wahl fällt dabei auf Node.js, da der Server somit genau wie der Client in JavaScript geschrieben werden kann und somit ohne Einbindung externer Bibliotheken von sich aus das WebSocket-Protokoll unterstützt. Zu Testzwecken werden Zahlen vom Testserver an den Client geschickt, der aus diesen mithilfe des eingebundenen WebAssembly-Moduls die Fakultät berechnet und sie daraufhin an den Server zurück sendet. Damit ist sichergestellt, dass der Client sich sowohl mit einem WebSocket-kompatiblen Server verbinden kann als auch Daten von diesem empfangen, die Daten per WebAssembly-Funktionen verarbeiten und sie an den Server zurück schicken kann. \par
@@ -220,12 +230,12 @@ Um überhaupt das Bild rendern zu können, werden leere Nachrichten ignoriert un
 
 Ebenfalls erweist sich die Zeiterfassung für diese Methode der Datenübertragung als schwer. Der Client beendet seine Berechnung scheinbar wahllos und muss neu gestartet werden, um weiterhin Bildpunkte zu berechnen. Erst mit einer Konsolenausgabe, dass ein Auftrag fertig berechnet wurde, zeigt sich, dass der Client immer nach Beenden eines Auftrages anhält und keine weiteren Aufträge mehr erhält. Das lässt sich damit erklären, dass auch die Nachricht, mit der der Client neue Aufträge anfordert, vom Server als leerer String interpretiert werden kann und die Berechnung somit zum Halt kommt. Lädt man den Client neu, sobald er aufhört, Punkte zu berechnen, dauert die gesamte Darstellung der Mandelbrotmenge lokal ca. 4 Minuten; ein Wert der aufgrund des wiederholten, manuellen Ladens des Clients ungenau ist.\par
 
-Der Versuch, sämtliche berechneten Punkte durch Zeilenumbrüche getrennt in einer Nachricht zu verschicken, scheitert daran, dass die Nachricht zwar korrekt vom Server gelesen wird, jedoch in der Funktion, in die der String übergeben wird, als null-String ausgegeben wird. Daher ist der nächste Schritt, diese Zeilen einzeln zu versenden. So werden x-Wert, y-Wert und die berechnete Iteration jeweils mit einem Trennzeichen zwischen aneinander gekettet und verschickt. 
+Der Versuch, sämtliche berechneten Punkte durch Zeilenumbrüche getrennt in einer Nachricht zu verschicken, scheitert daran, dass die Nachricht zwar korrekt vom Server gelesen wird, jedoch in der Funktion, in die der String übergeben wird, als null-String ausgegeben wird. Daher ist der nächste Schritt, diese Zeilen einzeln zu versenden. So werden x-Wert, y-Wert und die berechnete Iteration eines jeden Bildpunkts jeweils mit einem Trennzeichen zwischen aneinander gekettet und verschickt. 
 
 \begin{figure}[htbp] 
 	\centering
 	\includegraphics[width=0.5\textwidth]{zeilenVersandt.PNG}
-	\caption{Mandelbrotmenge bei separatem Versand jedes einzelnen Punktes}
+	\caption{Mandelbrotmenge bei separatem Versand jedes einzelnen Punkts}
 	\label{fig:Bild2}
 \end{figure}
 
