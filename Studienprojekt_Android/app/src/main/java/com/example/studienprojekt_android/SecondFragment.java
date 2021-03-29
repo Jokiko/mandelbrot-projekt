@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -141,6 +142,7 @@ public class SecondFragment extends Fragment {
             sb.append(string).append("_");
         }
         name = sb.toString();
+        Log.d("setDeviceName", name);
         txtName.setText(R.string.device_name_str);
         txtName.append("\n" + deviceName);
     }
