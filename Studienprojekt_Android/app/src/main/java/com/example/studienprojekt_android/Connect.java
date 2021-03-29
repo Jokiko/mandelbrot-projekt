@@ -167,7 +167,7 @@ public class Connect implements Runnable{
             ip_3 = "-1";
             ip_4 = "-1";
             e.printStackTrace();
-        }//*/
+        }
         if(!correctIP){
             status = "incorrect ip (0.0.0.0 - 255.255.255.255)";
         }
