@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Kerneldateien">
+      <UniqueIdentifier>{0143cafd-d395-4fe5-9662-37e3af11c75d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien">
+      <UniqueIdentifier>{d65af40d-e796-4308-8f12-54748fa866df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{e3ddf9b9-0e41-467f-9c59-cf59df18f28f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="CudaCalculator.cu">
+      <Filter>Kerneldateien</Filter>
+    </CudaCompile>
+    <CudaCompile Include="CudaMain.cu">
+      <Filter>Kerneldateien</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CudaCalculator.cuh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Client.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+﻿  Compiling CUDA source file CudaCalculator.cu...
+  Compiling CUDA source file CudaMain.cu...
+  
+  C:\Users\randy\source\repos\Mandelbrotprojekt\CUDA MultiThread>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include"  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\CudaCalculator.cu.obj "C:\Users\randy\source\repos\Mandelbrotprojekt\CUDA MultiThread\CudaCalculator.cu" 
+  
+  C:\Users\randy\source\repos\Mandelbrotprojekt\CUDA MultiThread>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include"  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\CudaMain.cu.obj "C:\Users\randy\source\repos\Mandelbrotprojekt\CUDA MultiThread\CudaMain.cu" 
+  CudaCalculator.cu
+  CudaMain.cu
+  Client.cpp
+C:\Users\randy\source\repos\Mandelbrotprojekt\CUDA MultiThread\Client.cpp(113,66): warning C4267: "Argument": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\randy\source\repos\Mandelbrotprojekt\CUDA MultiThread\Client.cpp(129,54): warning C4267: "Argument": Konvertierung von "size_t" nach "int", Datenverlust möglich
+     Bibliothek "C:\Users\randy\source\repos\Mandelbrotprojekt\x64\Debug\CUDA MultiThread.lib" und Objekt "C:\Users\randy\source\repos\Mandelbrotprojekt\x64\Debug\CUDA MultiThread.exp" werden erstellt.
+  CUDA MultiThread.vcxproj -> C:\Users\randy\source\repos\Mandelbrotprojekt\x64\Debug\CUDA MultiThread.exe

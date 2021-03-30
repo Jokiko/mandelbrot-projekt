@@ -1,0 +1,5 @@
+﻿  CPUCalculator.cpp
+C:\Users\randy\source\repos\Mandelbrotprojekt\CPU Mandelbrot\CPUCalculator.cpp(57,22): warning C4244: "Argument": Konvertierung von "double" in "int", möglicher Datenverlust
+  CPUMain.cpp
+  Code wird generiert...
+  CPU Mandelbrot.vcxproj -> C:\Users\randy\source\repos\Mandelbrotprojekt\x64\Debug\CPU Mandelbrot.exe
