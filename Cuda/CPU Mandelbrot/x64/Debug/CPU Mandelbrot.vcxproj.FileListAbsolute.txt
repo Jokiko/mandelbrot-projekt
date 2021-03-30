@@ -1,2 +1,0 @@
-C:\Users\randy\source\repos\Jokiko\mandelbrot-projekt\Cuda\Cuda\x64\Debug\CPU Mandelbrot.exe.lastcodeanalysissucceeded
-C:\Users\randy\source\repos\Jokiko\mandelbrot-projekt\Cuda\Cuda\CPU Mandelbrot\x64\Debug\NativeCodeAnalysis.read.1.tlog
