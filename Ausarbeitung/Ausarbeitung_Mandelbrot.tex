@@ -1,4 +1,4 @@
-\documentclass[12pt, onecolumn,notitlepage]{scrartcl}
+\documentclass[12pt, onecolumn, notitlepage]{scrartcl}
 %\documentclass[handout]{beamer}
 %\documentclass[draft]{beamer}
 
@@ -21,12 +21,7 @@
 
 \begin{document}
 
-\title{Verteiltes System zur Berechnung der Mandelbrotmenge}
-
-\author{Lars Klee, 1288210\\Randy Stoppe, 1390338\\Josua Kirsch, 1293138\\Universität Trier}
-
-
-\newcommand{\define}[1]{\color{darkorange}Definition: \color{black}{#1}\\  } 
+\renewcommand{\figurename}{Abb.} 
 
 
 \thispagestyle{empty}
@@ -39,9 +34,10 @@
 			im Wintersemester 2020/21 \\
 			bei Prof. Dr. Peter Sturm \\ [1em]
 			Universität Trier \\ [1em]
-			Lars Klee, 1288210\\Randy Stoppe, 1390338\\Josua Kirsch, 1293138
+			Lars Klee, 1288210 \\
+			Randy Stoppe, 1390338 \\
+			Josua Kirsch, 1293138
 		}
-
 	}
 \end{center}
 \setcounter{page}{0}
@@ -75,9 +71,105 @@ Die folgenden drei Kapitel beschreiben jeweils einen der entwickelten Clients un
 Bei der App-Programmierung kann zwischen Kotlin, Java und C++ als Programmiersprachen gewählt werden. Hier wird C++ zur Berechnung der Mandelbrotmenge und Java für die Server-Client-Kommunikation, Button-Listener und zur Überprüfung der WLAN-Verbindung verwendet. Das eigentliche Hauptproblem bei Android oder im Generellen bei Smartphones ist, dass diese, im Gegensatz zu PCs, beschränkte Ressourcen vorweisen, sei es CPU-Leistung, RAM, Speicherplatz oder Batterielaufzeit. Auch wenn diese Beschränkungen mit neuen Modellen und Technologien immer weiter abnehmen, sollte dennoch dafür gesorgt werden, dass die App möglichst Ressourcen schonend programmiert wird. Außerdem muss bei der App-Programmierung dafür gesorgt werden, dass der der main-Thread, auch UI-Thread genannt, möglichst wenig Arbeit auszuführen hat, da dieser, wie der Name bereits andeutet, dafür verantwortlich ist, dass die UI weiterhin auf Eingaben reagieren kann. Wenn dieser Thread zu viel Arbeit verrichten muss, dann kann es nach einer gewissen Zeit zu einer ANR-Meldung (Application Not Responding) kommen, dann bekommt der Nutzer die Möglichkeit die App zu beenden oder zu warten, bis die Aufgabe beendet wurde und die UI auf eine Eingabe reagieren kann. Deswegen ist in der App-Programmierung wichtig, so wenig wie möglich auf dem UI-Thread laufen zu lassen. Dies war zu Beginn des Projekts ein Problem, da immer wieder dem UI-Thread zu viele Aufgaben gegeben wurde und die App regelmäßig abstürzte. Es muss sehr viel in neue Threads ausgelagert werden, wie zum Beispiel der Verbindungsaufbau zum Server, aber auch das Verschicken einer einzelnen Nachricht, da sonst die App mit der Fehlermeldung „NetworkOnMainThreadException“ abstürzt.
 \subsection{Bedienungsanleitung}
 \subsubsection{Starten der Anwendung}
+\begin{enumerate}
+	\setlength\itemsep{0.07em}
+	\item starte Android Studio
+	\item öffne Android Projekt (Studienprojekt\_Android)
+	\item wähle Gerät aus [Smartphone (a), Emulator (b) oder mehrere Geräte (c)]
+	\begin{itemize}
+		\item[a)] Smartphone vorbereiten (Entwickleroptionen aktivieren)
+		\begin{enumerate}
+			\item[1.] Einstellungen öffnen und auf „Telefoninfo“ tippen
+			\item[2.] auf Softwareinformation tippen
+			\item[3.] mehrmals auf Schaltfläche „Buildnummer“ tippen
+			\item[4.] gebe Smartphone Pin ein
+			\item[5.] Nachricht "Der Entwicklermodus wurde aktiviert" erscheint
+			\item[6.] in Einstellungen erscheint Schaltfläche "Entwickleroptionen"
+			\item[7.] auf Entwickleroptionen tippen
+			\item[8.] aktiviere USB-Debugging
+			\item[9.] tippe auf OK
+			\item[10.] Smartphone mit USB-Kabel an PC anschließen
+			\item[] Entwickleroptionen deaktivieren
+			\begin{itemize}
+				\item[1.] Einstellungen öffnen
+				\item[2.] auf Entwickleroptionen tippen
+				\item[3.] in ersten Zeile auf Regler tippen
+			\end{itemize}
+		\end{enumerate}
+		\item[b)] wenn Emulator noch nicht erstellt
+			\begin{itemize}
+			\item[1.] wähle "AVD Manager"
+			\item[2.] wähle "create virutal device"
+			\item[3.] wähle beliebiges virtuelles Smartphone
+			\item[4.] klicke „next“
+			\item[5.] wähle, falls vorhanden, aktuellstes Betriebssystem, ansonsten downloade es
+			\item[6.] klicke „next“
+			\item[7.] klicke „finish“
+			\end{itemize}
+		\item[c)] falls gewünscht kann mithilfe von „Run on Multiple Devices“ die App auf mehreren Geräten gleichzeitig gestartet werden
+			\begin{itemize}
+			\item[1.] auf „Run on Multiple Devices“ klicken
+			\item[2.] alle gewünschten Geräte auswählen
+			\item[3.] auf „run“ klicken (App wird installiert und öffnet automatisch)
+			\begin{itemize}
+				\item[-] Schritt 4 entfällt somit
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}
+	\item starte App (App wird installiert und öffnet automatisch)
+\end{enumerate}
+\begin{figure}[htbp] 
+	\centering
+	\includegraphics[width=0.6\textwidth]{Geraete_Auswahl_AS.png}
+	\caption{zu finden oben in der Mitte von Android Studio}
+\end{figure}
+
 \subsubsection{UI-Erklärung}
-Wenn die App gestartet wird und den Startbildschirm  sieht, dann hat der User die Möglichkeit am oberen Bildschirmrand einen Namen für das Gerät einzugeben, dieser wird mit an den Server geschickt und der Androidsocketthread erhält dann diesen Namen um besser erkennen zu können bei welchem Client die Verbindung beendet wurde. Darunter besteht die Möglichkeit die gewünschte IP-Adresse  sowie den Port  des Servers einzugeben. Entsprechen die Eingaben den Wünschen so kann mit einem Klick auf Connect   versucht werden eine Verbindung zum Server herzustellen, wenn dies nicht gelingt so bekommt der User eine Rückmeldung per Toast-Nachricht woran es gelegen hat (Server nicht erreichbar, keine WLAN-/Internetverbindung, ungültige IP/Port). Wenn der User alle Eingaben verwerfen will, so besteht die Möglichkeit mit einem Klick auf den Delete-Button  dies zu ermöglichen. \par
-Wenn eine Verbindung zum Server aufgebaut werden konnte so wechselt die Ansicht zum Berechnungsbildschirm. Dort kann der User am oberen Bildschirmrand die CPU-Usage sowie die Memory-Usage einsehen. In der Mitte des Bildschirms kann die Network-Usage  eingesehen werden. Diese zeigt an wie viele kb/s gesendet bzw. empfangen werden, daran lässt sich erkennen ob gerade ein Datenaustausch zwischen Client und Server stattfindet. Über den Buttons wird der zuvor auf der Startseite eingegebene Gerätename angezeigt. Im unteren Drittel des Bildschirms werden die Buttons dargestellt. Am unteren Ende des Bildschirms hat der User die Möglichkeit den aktuellen Status, ob eine Berechnung läuft oder pausiert ist, einzusehen. Mit einem Tippen auf Start fragt der User die erste Task an und wird berechnet daraufhin, bis pausiert oder beendet wird, die Mandelbrotmenge, außerdem wechselt der Text auf dem Button zu „Running…“). Mit einem Klick auf Pause wird die aktuell laufende Berechnung beendet und an den Server geschickt, aber keine neue Task angefordert, dies kann wieder fortgesetzt werden wenn der User wieder auf den Start-Button, der jetzt die Beschriftung „Resume“ hat, klickt. Der Pause-Button wechselt, nachdem er geklickt wurde, seine Beschriftung von „Pause“ auf „Paused“. Wenn die Berechnung wieder fortgesetzt werden möchte, dann genügt ein Klick auf den Start-Button, der jetzt die Beschriftung Resume hat, anschließend wird die Berechnung der Mandelbrotmenge fortgeführt. Mit einem Klick auf \enquote{Quit} wird die Verbindung zum Server getrennt, falls eine Berechnung laufen sollte, dann wird der User gefragt ob er die laufende Berechnung unterbrechen will oder nicht. Wenn der User auf \enquote{Quit} klickt und gegebenenfalls die Berechnung beendet, dann wechselt die Ansicht wieder zum Startbildschirm.
+Wenn die App gestartet wird und den Startbildschirm (Abb.2) einzusehen ist, dann hat der User die Möglichkeit am oberen Bildschirmrand einen Namen (Abb.2 a) für das Gerät einzugeben, dieser wird mit an den Server geschickt und der Androidsocketthread erhält dann diesen Namen um besser erkennen zu können bei welchem Client die Verbindung beendet wurde. Darunter besteht die Möglichkeit die gewünschte IP-Adresse (Abb.2 b) sowie den Port (Abb.2 c) des Servers einzugeben. Entsprechen die Eingaben den Wünschen so kann mit einem Klick auf Connect (Abb.2 d) versucht werden eine Verbindung zum Server herzustellen, wenn dies nicht gelingt so bekommt der User eine Rückmeldung per Toast-Nachricht woran es gelegen hat (Server nicht erreichbar, keine WLAN-/Internetverbindung, ungültige IP/Port). Wenn der User alle Eingaben verwerfen will, so besteht die Möglichkeit mit einem Klick auf den Delete-Button (Abb.2 e) dies zu ermöglichen. \par
+Wenn eine Verbindung zum Server aufgebaut werden konnte so wechselt die Ansicht zum Berechnungsbildschirm (Abb.3). Dort kann der User am oberen Bildschirmrand die CPU-Usage (Abb.3 a) sowie die Memory-Usage (Abb.3 b) einsehen. In der Mitte des Bildschirms kann die Network-Usage (Abb.3 c) eingesehen werden. Diese zeigt an wie viele kb/s gesendet bzw. empfangen werden, daran lässt sich erkennen ob gerade ein Datenaustausch zwischen Client und Server stattfindet. Über den Buttons wird der zuvor auf der Startseite eingegebene Gerätename angezeigt (Abb.3 d). Im unteren Drittel des Bildschirms werden die Buttons dargestellt (Abb.3 e). Am unteren Ende des Bildschirms hat der User die Möglichkeit den aktuellen Status, ob eine Berechnung läuft oder pausiert ist, einzusehen (Abb.3 f). Mit einem Tippen auf Start fragt der User die erste Task an und wird berechnet daraufhin, bis pausiert oder beendet wird, die Mandelbrotmenge, außerdem wechselt der Text auf dem Button zu „Running…“(Abb.4). Mit einem Klick auf Pause wird die aktuell laufende Berechnung beendet und an den Server geschickt, aber keine neue Task angefordert, dies kann wieder fortgesetzt werden wenn der User wieder auf den Start-Button, der jetzt die Beschriftung „Resume“ hat, klickt. Der Pause-Button wechselt, nachdem er geklickt wurde, seine Beschriftung von „Pause“ auf „Paused“ (Abb.5). Wenn die Berechnung wieder fortgesetzt werden möchte, dann genügt ein Klick auf den Start-Button, der jetzt die Beschriftung Resume hat, anschließend wird die Berechnung der Mandelbrotmenge fortgeführt (Abb.6). Mit einem Klick auf \enquote{Quit} wird die Verbindung zum Server getrennt, falls eine Berechnung laufen sollte, dann wird der User gefragt ob er die laufende Berechnung unterbrechen will oder nicht (Abb.7). Wenn der User auf \enquote{Quit} klickt und gegebenenfalls die Berechnung beendet, dann wechselt die Ansicht wieder zum Startbildschirm. \\ \\
+\textbf{Anwendungshinweis:} \par
+Es wird nicht empfohlen den Darkmode des Smartphones, während die App läuft, zu ändern, da ansonsten eine eventuell laufende Berechnung beendet wird und zwischen Client und Server keine Kommunikation mehr möglich ist.
+
+\begin{figure}[H] 
+	\begin{minipage}[b]{.4\linewidth}
+		\centering
+		\includegraphics[height=0.5\textheight, width=0.9\textwidth]{start_screen.jpg}
+		\caption{Startbildschirm}
+	\end{minipage}
+	\hspace{.1\linewidth}
+	\begin{minipage}[b]{.4\linewidth}
+		\centering
+		\includegraphics[height=0.5\textheight, width=0.9\textwidth]{calc_screen.jpg}
+		\caption{Berechnungsbildschirm}
+	\end{minipage}
+\end{figure}
+
+\begin{figure}[H] 
+	\begin{minipage}[b]{.4\linewidth}
+		\centering
+		\includegraphics[width=0.8\textwidth]{calc_running.jpg}
+		\caption{Berechnung gestartet}
+	\end{minipage}
+	\hspace{.1\linewidth}
+	\begin{minipage}[b]{.4\linewidth}
+		\centering
+		\includegraphics[width=0.8\textwidth]{calc_paused.jpg}
+		\caption{Berechnung pausiert}
+	\end{minipage}
+	\hspace{.1\linewidth}
+	\centering
+	\begin{minipage}[b]{.4\linewidth}
+		\centering
+		\includegraphics[width=0.8\textwidth]{calc_resumed.jpg}
+		\caption{Berechnung fortgesetzt}
+	\end{minipage}
+\end{figure}
+
+\begin{figure}[H] 
+	\centering
+	\includegraphics[height=0.5\textheight,width=0.4\textwidth]{calc_quit.jpg}
+	\caption{laufende Berechnung beenden}
+\end{figure}
 
 
 \subsection{Entwicklung und Probleme}
