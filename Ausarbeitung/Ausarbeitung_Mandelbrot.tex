@@ -52,17 +52,17 @@ Die folgenden drei Kapitel beschreiben jeweils einen der entwickelten Clients un
 
 \section{Android Client}
 \subsection{Verwendete Technologie}
-Bei der App-Programmierung kann zwischen Kotlin, Java und C++ als Programmiersprachen gewählt werden. Hier wird C++ zur Berechnung der Mandelbrotmenge und Java für die Server-Client-Kommunikation, Button-Listener und zur Überprüfung der WLAN-Verbindung verwendet. Das eigentliche Hauptproblem bei Android oder im Generellen bei Smartphones ist, dass diese, im Gegensatz zu PCs, beschränkte Ressourcen vorweisen, sei es CPU-Leistung, RAM, Speicherplatz oder Batterielaufzeit. Auch wenn diese Beschränkungen mit neuen Modellen und Technologien immer weiter abnehmen, sollte dennoch dafür gesorgt werden, dass die App möglichst Ressourcen schonend programmiert wird. Außerdem muss bei der App-Programmierung dafür gesorgt werden, dass der der main-Thread, auch UI-Thread genannt, möglichst wenig Arbeit auszuführen hat, da dieser, wie der Name bereits andeutet, dafür verantwortlich ist, dass die UI weiterhin auf Eingaben reagieren kann. Wenn dieser Thread zu viel Arbeit verrichten muss, dann kann es nach einer gewissen Zeit zu einer ANR-Meldung (Application Not Responding) kommen, dann bekommt der Nutzer die Möglichkeit die App zu beenden oder zu warten, bis die Aufgabe beendet wurde und die UI auf eine Eingabe reagieren kann. Deswegen ist in der App-Programmierung wichtig, so wenig wie möglich auf dem UI-Thread laufen zu lassen. Dies war zu Beginn des Projekts ein Problem, da immer wieder dem UI-Thread zu viele Aufgaben gegeben wurde und die App regelmäßig abstürzte. Man muss sehr viel in neue Threads auslagern, wie zum Beispiel der Verbindungsaufbau zum Server, aber auch das Verschicken einer einzelnen Nachricht, da sonst die App mit der Fehlermeldung „NetworkOnMainThreadException“ abstürzt.
+Bei der App-Programmierung kann zwischen Kotlin, Java und C++ als Programmiersprachen gewählt werden. Hier wird C++ zur Berechnung der Mandelbrotmenge und Java für die Server-Client-Kommunikation, Button-Listener und zur Überprüfung der WLAN-Verbindung verwendet. Das eigentliche Hauptproblem bei Android oder im Generellen bei Smartphones ist, dass diese, im Gegensatz zu PCs, beschränkte Ressourcen vorweisen, sei es CPU-Leistung, RAM, Speicherplatz oder Batterielaufzeit. Auch wenn diese Beschränkungen mit neuen Modellen und Technologien immer weiter abnehmen, sollte dennoch dafür gesorgt werden, dass die App möglichst Ressourcen schonend programmiert wird. Außerdem muss bei der App-Programmierung dafür gesorgt werden, dass der der main-Thread, auch UI-Thread genannt, möglichst wenig Arbeit auszuführen hat, da dieser, wie der Name bereits andeutet, dafür verantwortlich ist, dass die UI weiterhin auf Eingaben reagieren kann. Wenn dieser Thread zu viel Arbeit verrichten muss, dann kann es nach einer gewissen Zeit zu einer ANR-Meldung (Application Not Responding) kommen, dann bekommt der Nutzer die Möglichkeit die App zu beenden oder zu warten, bis die Aufgabe beendet wurde und die UI auf eine Eingabe reagieren kann. Deswegen ist in der App-Programmierung wichtig, so wenig wie möglich auf dem UI-Thread laufen zu lassen. Dies war zu Beginn des Projekts ein Problem, da immer wieder dem UI-Thread zu viele Aufgaben gegeben wurde und die App regelmäßig abstürzte. Es muss sehr viel in neue Threads ausgelagert werden, wie zum Beispiel der Verbindungsaufbau zum Server, aber auch das Verschicken einer einzelnen Nachricht, da sonst die App mit der Fehlermeldung „NetworkOnMainThreadException“ abstürzt.
 \subsection{Bedienungsanleitung}
 \subsubsection{Starten der Anwendung}
 \subsubsection{UI-Erklärung}
-Wenn man die App startet und man den Startbildschirm  sieht, dann hat der User die Möglichkeit am oberen Bildschirmrand einen Namen für das Gerät einzugeben, dieser wird mit an den Server geschickt und der Androidsocketthread erhält dann diesen Namen damit man, wenn die Verbindung beendet wird, besser erkennen kann bei welchem Client die Verbindung beendet wurde. Darunter besteht die Möglichkeit die gewünschte IP-Adresse  sowie den Port  des Servers einzugeben. Entsprechen die Eingaben den Wünschen so kann mit einem Klick auf Connect   versucht werden eine Verbindung zum Server herzustellen, wenn dies nicht gelingt so bekommt der User eine Rückmeldung per Toast-Nachricht woran es gelegen hat (Server nicht erreichbar, keine WLAN-/Internetverbindung, ungültige IP/Port). Wenn der User alle Eingaben verwerfen will, so besteht die Möglichkeit mit einem Klick auf den Delete-Button  dies zu ermöglichen. \par
-Wenn eine Verbindung zum Server aufgebaut werden konnte so wechselt die Ansicht zum Berechnungsbildschirm. Dort kann der User am oberen Bildschirmrand die CPU-Usage sowie die Memory-Usage einsehen. In der Mitte des Bildschirms kann die Network-Usage  eingesehen werden. Diese zeigt an wie viele kb/s gesendet bzw. empfangen werden, daran kann man erkennen ob gerade ein Datenaustausch zwischen Client und Server stattfindet. Über den Buttons wird der zuvor auf der Startseite eingegebene Gerätename angezeigt. Im unteren Drittel des Bildschirms werden die Buttons dargestellt. Am unteren Ende des Bildschirms hat der User die Möglichkeit den aktuellen Status, ob eine Berechnung läuft oder pausiert ist, einzusehen. Mit einem Tippen auf Start fragt der User die erste Task an und wird berechnet daraufhin, bis pausiert oder beendet wird, die Mandelbrotmenge, außerdem wechselt der Text auf dem Button zu „Running…“). Mit einem Klick auf Pause wird die aktuell laufende Berechnung beendet und an den Server geschickt, aber keine neue Task angefordert, dies kann wieder fortgesetzt werden wenn der User wieder auf den Start-Button, der jetzt die Beschriftung „Resume“ hat, klickt. Der Pause-Button wechselt, nachdem er geklickt wurde, seine Beschriftung von „Pause“ auf „Paused“. Wenn man die Berechnung wieder fortsetzen möchte, dann kann man auf den Start-Button, jetzt mit der Beschriftung Resume, tippen anschließend wird die Berechnung der Mandelbrotmenge fortgeführt. Mit einem Klick auf \enquote{Quit} wird die Verbindung zum Server getrennt, falls eine Berechnung laufen sollte, dann wird der User gefragt ob er die laufende Berechnung unterbrechen will oder nicht. Wenn der User auf \enquote{Quit} klickt und gegebenenfalls die Berechnung beendet, dann wechselt die Ansicht wieder zum Startbildschirm.
+Wenn die App gestartet wird und den Startbildschirm  sieht, dann hat der User die Möglichkeit am oberen Bildschirmrand einen Namen für das Gerät einzugeben, dieser wird mit an den Server geschickt und der Androidsocketthread erhält dann diesen Namen um besser erkennen zu können bei welchem Client die Verbindung beendet wurde. Darunter besteht die Möglichkeit die gewünschte IP-Adresse  sowie den Port  des Servers einzugeben. Entsprechen die Eingaben den Wünschen so kann mit einem Klick auf Connect   versucht werden eine Verbindung zum Server herzustellen, wenn dies nicht gelingt so bekommt der User eine Rückmeldung per Toast-Nachricht woran es gelegen hat (Server nicht erreichbar, keine WLAN-/Internetverbindung, ungültige IP/Port). Wenn der User alle Eingaben verwerfen will, so besteht die Möglichkeit mit einem Klick auf den Delete-Button  dies zu ermöglichen. \par
+Wenn eine Verbindung zum Server aufgebaut werden konnte so wechselt die Ansicht zum Berechnungsbildschirm. Dort kann der User am oberen Bildschirmrand die CPU-Usage sowie die Memory-Usage einsehen. In der Mitte des Bildschirms kann die Network-Usage  eingesehen werden. Diese zeigt an wie viele kb/s gesendet bzw. empfangen werden, daran lässt sich erkennen ob gerade ein Datenaustausch zwischen Client und Server stattfindet. Über den Buttons wird der zuvor auf der Startseite eingegebene Gerätename angezeigt. Im unteren Drittel des Bildschirms werden die Buttons dargestellt. Am unteren Ende des Bildschirms hat der User die Möglichkeit den aktuellen Status, ob eine Berechnung läuft oder pausiert ist, einzusehen. Mit einem Tippen auf Start fragt der User die erste Task an und wird berechnet daraufhin, bis pausiert oder beendet wird, die Mandelbrotmenge, außerdem wechselt der Text auf dem Button zu „Running…“). Mit einem Klick auf Pause wird die aktuell laufende Berechnung beendet und an den Server geschickt, aber keine neue Task angefordert, dies kann wieder fortgesetzt werden wenn der User wieder auf den Start-Button, der jetzt die Beschriftung „Resume“ hat, klickt. Der Pause-Button wechselt, nachdem er geklickt wurde, seine Beschriftung von „Pause“ auf „Paused“. Wenn die Berechnung wieder fortgesetzt werden möchte, dann genügt ein Klick auf den Start-Button, der jetzt die Beschriftung Resume hat, anschließend wird die Berechnung der Mandelbrotmenge fortgeführt. Mit einem Klick auf \enquote{Quit} wird die Verbindung zum Server getrennt, falls eine Berechnung laufen sollte, dann wird der User gefragt ob er die laufende Berechnung unterbrechen will oder nicht. Wenn der User auf \enquote{Quit} klickt und gegebenenfalls die Berechnung beendet, dann wechselt die Ansicht wieder zum Startbildschirm.
 
 
-\subsection{Entwicklung \& Probleme}
+\subsection{Entwicklung und Probleme}
 Zu Beginn sollte die App nur den von der App selbst benutzten RAM anzeigen lassen, dies erwies sich schwieriger als gedacht, denn jede App bekommt vom System eine bestimmte Menge an RAM zur alleinigen Verfügung gestellt, allerdings benutzen die Apps auch sogenannten „shared Memory“ und dieser wird von mehreren Apps benutzt, was die Bestimmung der Menge des benutzten RAMs für eine bestimmte App erschwert. Aus diesem Grund wird die Gesamtmenge an belegtem RAM angezeigt um so dann ableiten zu können ob die App richtig arbeitet. \par
-Nach ersten Recherchen hätte man das Smartphone „rooten“ müssen um die benötigten Informationen auslesen zu können, damit die CPU-Usage ausgelesen und somit angezeigt werden kann. Dies ist allerdings nicht zu empfehlen, da nach diesem Vorgang im schlimmsten Falle das Smartphone nicht mehr benutzbar ist. Außerdem können integrierte Sicherheitssysteme nach dem Root-Vorgang nicht mehr aktiviert werden und dadurch wird das Smartphone anfälliger für Virus- oder Malware-Angriffe. Aus diesen Gründen wurde zunächst auf das Rooten und auf das Anzeigen der CPU-Usage verzichtet. Nach weiteren Recherchen wurde eine Lösung, ohne das Smartphone rooten zu müssen, auf den folgenden Internetseiten gefunden:
+Nach ersten Recherchen hätte das Smartphone „gerootet“ werden müssen um die benötigten Informationen auslesen zu können, damit die CPU-Usage ausgelesen und somit angezeigt werden kann. Dies ist allerdings nicht zu empfehlen, da nach diesem Vorgang im schlimmsten Falle das Smartphone nicht mehr benutzbar ist. Außerdem können integrierte Sicherheitssysteme nach dem Root-Vorgang nicht mehr aktiviert werden und dadurch wird das Smartphone anfälliger für Virus- oder Malware-Angriffe. Aus diesen Gründen wurde zunächst auf das Rooten und auf das Anzeigen der CPU-Usage verzichtet. Nach weiteren Recherchen wurde eine Lösung, ohne das Smartphone rooten zu müssen, auf den folgenden Internetseiten gefunden:
 \begin{itemize}
 	\itemsep0pt
 	\item http://www.java2s.com/Code/Android/Hardware/GetCPUFrequencyCurrent.htm
@@ -84,7 +84,7 @@ Jetzt kann der Client erfolgreich Tasks entgegennehmen, diese berechnen und an d
 Die Check-Klasse sorgt dafür, wenn die Internetverbindung abbricht oder zu schwach ist, dass dann die Verbindung zum Server getrennt wird und die Ansicht auf dem Bildschirm wieder zum Startbildschirm wechselt. Zunächst wechselte die Ansicht nicht zum Startbildschirm zurück, wenn die WLAN-Verbindung unterbrochen wurde, da bei der Überprüfung welches Fragment, also welcher Ansicht gerade aktiv ist, ein Fehler unterlaufen ist. Mithilfe des FragmentManager konnte dieses Problem gelöst werden, denn fragmentManager.getPrimaryNavigationFragment() liefert das aktuelle aktive Fragment und somit kann der Befehl \\
 \textit{NavHostFragment.findNavController(Objects.requireNonNull(fragmentManager\\.getPrimaryNavigationFragment())).navigate(R.id.action\_secondFragment\_to\\\_firstFragment)} \\
 erfolgreich ausgeführt werden. Das gleiche Problem trat auch beim Tippen auf den Quit-Button auf und konnte genauso gelöst werden. \par
-Durch Zufall fiel auf, dass im Logcat, wenn man zur zweiten Ansicht wechselt, zwischen 30 und 40 Frames jede Sekunde übersprungen werden, da der UI-Thread zu viel Arbeit verrichtet. Das liegt vermutlich daran, dass jede Sekunde die CPU-Usage, Memory-Usage sowie die Network-Usage aktualisiert werden und dieser Vorgang muss auf dem UI-Thread laufen, da dieser der einzige ist der die UI aktualisieren kann. Die Benutzeroberfläche reagiert allerdings noch auf jede Eingabe und somit stellt dies kein schwerwiegendes Problem dar und kann ignoriert werden.
+Durch Zufall fiel auf, dass im Logcat, wenn zur zweiten Ansicht gewechselt wird, zwischen 30 und 40 Frames jede Sekunde übersprungen werden, da der UI-Thread zu viel Arbeit verrichtet. Das liegt vermutlich daran, dass jede Sekunde die CPU-Usage, Memory-Usage sowie die Network-Usage aktualisiert werden und dieser Vorgang muss auf dem UI-Thread laufen, da dieser der einzige ist der die UI aktualisieren kann. Die Benutzeroberfläche reagiert allerdings noch auf jede Eingabe und somit stellt dies kein schwerwiegendes Problem dar und kann ignoriert werden.
 Ein weiteres Problem besteht darin, dass, nachdem die App beendet wird und das Smartphone mit dem PC mit einem USB-Kabel wieder verbunden wird sowie Android Studio neugestartet wird, weiterhin Ausgaben im Logcat stattfinden. Es können allerdings keine neuen Berechnungen sein, da der Zeitstempel, wie in den beiden folgenden Bildern zu erkennen, identisch ist.
 
 \begin{figure}[htbp] 
@@ -100,52 +100,52 @@ Ein weiteres Problem besteht darin, dass, nachdem die App beendet wird und das S
 \end{figure}
 
 Dieses Problem liegt nicht daran, dass der readerThread nicht richtig beendet wird, wenn die App geschlossen wird, da ein Aufruf von „readerThread.interrupt()“ nicht hilft.\par
-Wenn man die App deinstalliert und das Smartphone neu startet, dann wird bei Android Studio in Logcat nichts mehr ausgegeben. Deswegen wird empfohlen, wenn die App auf dem eigenen Smartphone ausgeführt wird, nach der Deinstallation das Smartphone neu zu starten. 
+Wenn die App deinstalliert und das Smartphone neu gestartet wird, dann wird bei Android Studio in Logcat nichts mehr ausgegeben. Deswegen wird empfohlen, wenn die App auf dem eigenen Smartphone ausgeführt wird, nach der Deinstallation das Smartphone neu zu starten. 
 
 \begin{table}[H] 
 	\centering
 	\scalebox{0.9}{
-	\begin{tabular}{!{\color{black}\vrule}c!{\color{black}\vrule}c!{\color{black}\vrule}} 
-		\cline{1-1}\arrayrulecolor{black}\cline{2-2}
-		Server-Version
-		1.0 & Server-Version
-		2.0                                                                                                                                                                         \\ 
-		\arrayrulecolor{black}\cline{1-1}\arrayrulecolor{black}\cline{2-2}
-		\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			1260x625 \\Iterations:			50 \\Anzahl			Clients: 1 \\			Client-Typ:			Android \\Messung			1\end{tabular}}       \\ 
-		\arrayrulecolor{black}\hline
-		ca.
-		300 Sekunden   & ca. 210 Sekunden                                                                                                                                                                              \\ 
-		\hline
-		\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			500x500 \\Iterations:			50 \\			Anzahl			Clients: 1 \\Client-Typ:\\			Android			Messung			2\end{tabular}}      \\ 
-		\hline
-		nicht
-		gemessen     & ca.
-		70 Sekunden                                                                                                                                                                            \\ 
-		\hline
-		\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			500x500 \\			Iterations:			200 \\Anzahl			Clients: 1 \\			Client-Typ:			Android \\Messung			3\end{tabular}}    \\ 
-		\hline
-		nicht
-		gemessen     & ca.
-		80 Sekunden                                                                                                                                                                            \\ 
-		\hline
-		\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			1000x1000 \\Iterations:			200 \\Anzahl			Clients: 1 \\Client-Typ:			Android \\Messung			4\end{tabular}}        \\ 
-		\hline
-		nicht
-		gemessen     & ca.
-		165 Sekunden                                                                                                                                                                           \\
-		\hline
-	\end{tabular}
-}
-
+		\begin{tabular}{!{\color{black}\vrule}c!{\color{black}\vrule}c!{\color{black}\vrule}} 
+			\cline{1-1}\arrayrulecolor{black}\cline{2-2}
+			Server-Version
+			1.0 & Server-Version
+			2.0                                                                                                                                                                         \\ 
+			\arrayrulecolor{black}\cline{1-1}\arrayrulecolor{black}\cline{2-2}
+			\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			1260x625 \\Iterations:			50 \\Anzahl			Clients: 1 \\			Client-Typ:			Android \\Messung			1\end{tabular}}       \\ 
+			\arrayrulecolor{black}\hline
+			ca.
+			300 Sekunden   & ca. 210 Sekunden                                                                                                                                                                              \\ 
+			\hline
+			\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			500x500 \\Iterations:			50 \\			Anzahl			Clients: 1 \\Client-Typ:\\			Android			Messung			2\end{tabular}}      \\ 
+			\hline
+			nicht
+			gemessen     & ca.
+			70 Sekunden                                                                                                                                                                            \\ 
+			\hline
+			\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			500x500 \\			Iterations:			200 \\Anzahl			Clients: 1 \\			Client-Typ:			Android \\Messung			3\end{tabular}}    \\ 
+			\hline
+			nicht
+			gemessen     & ca.
+			80 Sekunden                                                                                                                                                                            \\ 
+			\hline
+			\multicolumn{2}{!{\color{black}\vrule}c!{\color{black}\vrule}}{\begin{tabular}[c]{@{}c@{}}Auflösung:			1000x1000 \\Iterations:			200 \\Anzahl			Clients: 1 \\Client-Typ:			Android \\Messung			4\end{tabular}}        \\ 
+			\hline
+			nicht
+			gemessen     & ca.
+			165 Sekunden                                                                                                                                                                           \\
+			\hline
+		\end{tabular}
+	}
+	
 \end{table}
 
-Messungen 2, 3 und 4 konnten bei der Server-Version 1.0 nicht gemessen werden, da man die Auflösung nicht anpassen konnte. Man kann allerdings gut erkennen, dass die benötigte Zeit von Server-Version 1.0 zu 2.0 stark reduziert wurde. Des Weiteren ist gut erkennbar, dass die Erhöhung der Iterations keine dramatischen Einfluss auf die Berechnungsdauer hat (Messungen 2 und 3), denn die benötigte Zeit hat sich im Gegensatz zur Iteration nicht vervierfacht. Einen viel größeren Einfluss auf die Zeit nimmt hingegen die größer der Auflösung (Messungen 3 und 4). Hier wurde jeweils die Höhe und die Breite verdoppelt, die Fläche wurde also vervierfacht, die benötigte Zeit hat sich circa verdoppelt.
+Messungen 2, 3 und 4 konnten bei der Server-Version 1.0 nicht gemessen werden, da die Auflösung nicht angepasst werden konnte. Es ist allerdings gut erkennbar, dass die benötigte Zeit von Server-Version 1.0 zu 2.0 stark reduziert wurde. Des Weiteren ist gut erkennbar, dass die Erhöhung der Iterations keine dramatischen Einfluss auf die Berechnungsdauer hat (Messungen 2 und 3), denn die benötigte Zeit hat sich im Gegensatz zur Iteration nicht vervierfacht. Einen viel größeren Einfluss auf die Zeit nimmt hingegen die größer der Auflösung (Messungen 3 und 4). Hier wurde jeweils die Höhe und die Breite verdoppelt, die Fläche wurde also vervierfacht, die benötigte Zeit hat sich circa verdoppelt.
 
 
 \section{CUDA Client}
 \subsection{Verwendete Technologie}
 \subsection{Bedienungsanleitung}
-\subsection{Entwicklung \& Probleme}
+\subsection{Entwicklung und Probleme}
 
 \section{JavaScript Client}
 \subsection{Verwendete Technologie}
@@ -195,7 +195,7 @@ Da hiermit Einstellungen verändert werden, empfiehlt es sich, nach Beenden der 
 	\item Die Datei „js\_client.html“ im Browser öffnen.
 	\item Gegebenenfalls die Konsole öffnen und überprüfen, ob der Client Aufträge entgegen genommen hat. Wenn nicht, die Seite neu laden, bis Aufträge erfolgreich entgegen genommen werden, und die Konsole schließen.
 \end{enumerate}
-\subsection{Entwicklung \& Probleme}
+\subsection{Entwicklung und Probleme}
 Nach der Auswahl von JavaScript mit WebAssembly zur Ergänzung als die Technologie für diesen Client war der erste Schritt, erst die Funktionsweise von WebAssembly kennenzulernen. Entsprechend war die erste Erwartungshaltung, dass die Entwicklung von WebAssembly-Modulen und deren funktionierende Einbindung in JavaScript, den kompliziertesten Teil der Cliententwicklung ausmachen würden. Daher entsteht zunächst ein kurzes Programm in C++, welches die Fakultät einer übergebenen Zahl berechnet und in den Client eingebunden wird. \\
 Über Konsoleneingaben und –ausgaben wird die Funktionalität erfolgreich getestet. Da die spätere Einbindung einer Funktion, die die Mandelbrotmenge berechnen soll, analog geschehen würde, ist die Verbindung zwischen Server und Client der nächste Schritt in der Entwicklung. \par
 
@@ -247,6 +247,17 @@ Doch auch in der finalen Variante kann es dazu kommen, dass Nachrichten vom Serv
 
 
 \section{Server}
+\subsection{Funktionsweise}
+Bei der ersten Version des Servers wurden jedem Client die Größe des Panels, welches die Mandelbrotmenge darstellt, der Iterations-Wert sowie eine für jeden Client einmalige Nummer zugewiesen. Mit diesen Kennwerten hat jetzt jeder Client einen gleichgroßen Bereich der Mandelbrotmenge berechnet. Dies wurde mit dem Wechsel zu Server Version 2.0 abgeändert. Jetzt fragt jeder Client eine Task an. Mit einer solchen Task erhält der Client den y-Wert, also welche Zeile er berechnet soll, den xMove- und yMove-Wert, diese geben an wie weit sich die Mandelbrotmenge bewegt hat, den zoom-Wert, dieser gibt an wie Tief hineingezoomt wurde und den aktuellen Iterations-Wert. Dies hat zur Folge, dass jetzt kein Client mehr einen bestimmten Bereich der Mandelbrotmenge berechnet, sondern nur eine Zeile pro erhaltener Nachricht. \par
+Server Version 2.0 stellt die UI mittels Swing dar und die Server-Client-Kommunikation wird mithilfe von TCP realisiert, also genauso wie es bei der ersten Version war. Außerdem gleichgeblieben ist die Abfrage nach dem Clienttypen. \par
+Wenn sich ein Client mit dem Server verbindet, dann wird mithilfe der ersten Nachricht ermittelt um welchen Clienttypen es sich handelt und dann der entsprechende Thread gestartet. Nun kann eine Task vom Server angefordert und diese vom Client berechnet werden. Sollte die Verbindung zum Client unterbrochen werden bevor das Ergebnis der Task an den Server geschickt wird, dann wird diese Task an das Ende der Taskliste, welche alle verbleibenden Task enthält, angefügt und kann somit von einem anderem Client angefordert und berechnet werden.
+
+\subsection{UI-Erklärung}
+Bevor der Server gestartet wird, wird der User gefragt welche Auflösung das Mandelbrotpanel haben soll. Wenn für Breite und Höhe gültige Werte (>0) eingegeben wurden, dann startet der Server. Wenn er gestartet wird und der Port bereits belegt/benutzt ist, dann öffnet sich ein JOptionPane und fragt den Nutzer, ob der Server neu gestartet oder ob der Vorgang beendet werden soll. Nachdem der Server erfolgreich gestartet wurde öffnet sich die UI und die Komponenten sind zu sehen. \par
+Auf der schwarzen Fläche auf der linken Seite der UI wird die berechnete Mandelbrotmenge dargestellt. Das weiße Kreuz dient dazu die Stelle in die hineingezoomt wird zu zentrieren. \par
+Auf der rechten Seite sind die Anzahl an verbundenen Clients sowie den aktuellen Iterations-Wert einsehbar. Des Weiteren wird angezeigt wie hoch die Anzahl der Clients der verschiedenen Typen ist. \par
+Am unteren Rand sind die Buttons zur Navigation zu finden. Diese führen genau das aus was auf ihnen steht. Der Restart-Button sorgt dafür, dass alle Variablen auf die Default-Werte zurückgesetzt werden und das Startbild berechnet wird. Bei Zoom-In bzw. Zoom-Out wird das Bild um einen bestimmten Faktor herein- bzw. hinausgezoomt. Bei Left, Up, Down, Right bewegt sich das Kreuz in die entsprechende Richtung um einen entsprechenden Faktor über das Bild. Zusätzlich kann mithilfe der Tastatur herein- (Plustaste), hinausgezoomt (Minustaste) und mit den entsprechenden Pfeiltasten kann das Kreuz nach links, recht, hoch und runter bewegt werden. Außerdem kann mithilfe der Escapetaste die Berechnung neugestartet und mit dem Mausrad herein- bzw. hinausgezoomt werden. \par
+Der Nutzer hat außerdem die Möglichkeit mithilfe der Maus ein Rechteck über einen bestimmten Bereich zu ziehen um in diesen hineinzuzoomen. Dabei hilft dem Nutzer ein kleines Kreuz in der Mitte des Rechtecks um den gewünschten Bereich zu zentrieren. Um das Rechteck zu zeichnen  muss der Nutzer die linke Maustaste klicken und gedrückt halten, wenn diese losgelassen wird, dann wird in das Bild hineingezoomt und neu berechnet. Falls das Rechteck an der falschen Stelle angesetzt wurde, dann kann die rechte Maustaste geklickt werden und der Vorgang wird abgebrochen.
 
 
 \section{Reflexion}
