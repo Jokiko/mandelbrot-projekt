@@ -24,14 +24,34 @@
 \title{Verteiltes System zur Berechnung der Mandelbrotmenge}
 
 \author{Lars Klee, 1288210\\Randy Stoppe, 1390338\\Josua Kirsch, 1293138\\Universität Trier}
-\date{Trier den \today}
+
 
 \newcommand{\define}[1]{\color{darkorange}Definition: \color{black}{#1}\\  } 
 
 
+\thispagestyle{empty}
+\vspace*{7cm}
+\begin{center}
+	\Large{
+		\textsc{
+			Praktikum im großen Studienprojekt \\ [1em]
+			\textbf{Verteiltes System zur Berechnung der Mandelbrotmenge} \\ [1em]
+			im Wintersemester 2020/21 \\
+			bei Prof. Dr. Peter Sturm \\ [1em]
+			Universität Trier \\ [1em]
+			Lars Klee, 1288210\\Randy Stoppe, 1390338\\Josua Kirsch, 1293138
+		}
 
-\maketitle
-\tableofcontents
+	}
+\end{center}
+\setcounter{page}{0}
+\newpage
+
+\pagenumbering{roman}
+\newpage
+	\tableofcontents
+\newpage
+\pagenumbering{arabic}
 
 
 \section{Einleitung}
@@ -248,16 +268,16 @@ Doch auch in der finalen Variante kann es dazu kommen, dass Nachrichten vom Serv
 
 \section{Server}
 \subsection{Funktionsweise}
-Bei der ersten Version des Servers wurden jedem Client die Größe des Panels, welches die Mandelbrotmenge darstellt, der Iterations-Wert sowie eine für jeden Client einmalige Nummer zugewiesen. Mit diesen Kennwerten hat jetzt jeder Client einen gleichgroßen Bereich der Mandelbrotmenge berechnet. Dies wurde mit dem Wechsel zu Server Version 2.0 abgeändert. Jetzt fragt jeder Client eine Task an. Mit einer solchen Task erhält der Client den y-Wert, also welche Zeile er berechnet soll, den xMove- und yMove-Wert, diese geben an wie weit sich die Mandelbrotmenge bewegt hat, den zoom-Wert, dieser gibt an wie Tief hineingezoomt wurde und den aktuellen Iterations-Wert. Dies hat zur Folge, dass jetzt kein Client mehr einen bestimmten Bereich der Mandelbrotmenge berechnet, sondern nur eine Zeile pro erhaltener Nachricht. \par
-Server Version 2.0 stellt die UI mittels Swing dar und die Server-Client-Kommunikation wird mithilfe von TCP realisiert, also genauso wie es bei der ersten Version war. Außerdem gleichgeblieben ist die Abfrage nach dem Clienttypen. \par
-Wenn sich ein Client mit dem Server verbindet, dann wird mithilfe der ersten Nachricht ermittelt um welchen Clienttypen es sich handelt und dann der entsprechende Thread gestartet. Nun kann eine Task vom Server angefordert und diese vom Client berechnet werden. Sollte die Verbindung zum Client unterbrochen werden bevor das Ergebnis der Task an den Server geschickt wird, dann wird diese Task an das Ende der Taskliste, welche alle verbleibenden Task enthält, angefügt und kann somit von einem anderem Client angefordert und berechnet werden.
+Bei der ersten Version des Servers wurden jedem Client die Größe des Panels, welches die Mandelbrotmenge darstellt, der Iterations-Wert sowie eine für jeden Client einmalige Nummer zugewiesen. Mit diesen Kennwerten hat jetzt jeder Client einen gleichgroßen Bereich der Mandelbrotmenge berechnet. Dies wurde mit dem Wechsel zu Server Version 2.0 abgeändert. Jetzt fragt jeder Client einen Auftrag an. Mit einem solchen Auftrag erhält der Client den y-Wert, also welche Zeile er berechnet soll, den xMove- und yMove-Wert, diese geben an wie weit sich die Mandelbrotmenge bewegt hat, den zoom-Wert, dieser gibt an wie Tief hineingezoomt wurde und den aktuellen Iterations-Wert. Dies hat zur Folge, dass jetzt kein Client mehr einen bestimmten Bereich der Mandelbrotmenge berechnet, sondern nur eine Zeile pro erhaltener Nachricht. \par
+Server Version 2.0 stellt die UI mittels Swing dar und die Server-Client-Kommunikation wird abhängig vom Clienttypen mithilfe von TCP bzw. des WebSocket-Protokolls realisiert, also genauso wie es bei der ersten Version war. Die Abfrage nach dem Clienttypen wurde ebenfalls nicht geändert. \par
+Wenn sich ein Client mit dem Server verbindet, dann wird mithilfe der ersten Nachricht ermittelt um welchen Clienttypen es sich handelt und dann der entsprechende Thread gestartet. Nun kann ein Rechenauftrag vom Server angefordert und dieser vom Client berechnet werden. Sollte die Verbindung zum Client unterbrochen werden bevor das Ergebnis des Auftrags an den Server geschickt wird, dann wird dieser Auftrag an das Ende der Aufgabenliste, welche alle verbleibenden Aufgaben enthält, angefügt und kann somit von einem anderem Client angefordert und berechnet werden.
 
 \subsection{UI-Erklärung}
-Bevor der Server gestartet wird, wird der User gefragt welche Auflösung das Mandelbrotpanel haben soll. Wenn für Breite und Höhe gültige Werte (>0) eingegeben wurden, dann startet der Server. Wenn er gestartet wird und der Port bereits belegt/benutzt ist, dann öffnet sich ein JOptionPane und fragt den Nutzer, ob der Server neu gestartet oder ob der Vorgang beendet werden soll. Nachdem der Server erfolgreich gestartet wurde öffnet sich die UI und die Komponenten sind zu sehen. \par
-Auf der schwarzen Fläche auf der linken Seite der UI wird die berechnete Mandelbrotmenge dargestellt. Das weiße Kreuz dient dazu die Stelle in die hineingezoomt wird zu zentrieren. \par
-Auf der rechten Seite sind die Anzahl an verbundenen Clients sowie den aktuellen Iterations-Wert einsehbar. Des Weiteren wird angezeigt wie hoch die Anzahl der Clients der verschiedenen Typen ist. \par
-Am unteren Rand sind die Buttons zur Navigation zu finden. Diese führen genau das aus was auf ihnen steht. Der Restart-Button sorgt dafür, dass alle Variablen auf die Default-Werte zurückgesetzt werden und das Startbild berechnet wird. Bei Zoom-In bzw. Zoom-Out wird das Bild um einen bestimmten Faktor herein- bzw. hinausgezoomt. Bei Left, Up, Down, Right bewegt sich das Kreuz in die entsprechende Richtung um einen entsprechenden Faktor über das Bild. Zusätzlich kann mithilfe der Tastatur herein- (Plustaste), hinausgezoomt (Minustaste) und mit den entsprechenden Pfeiltasten kann das Kreuz nach links, recht, hoch und runter bewegt werden. Außerdem kann mithilfe der Escapetaste die Berechnung neugestartet und mit dem Mausrad herein- bzw. hinausgezoomt werden. \par
-Der Nutzer hat außerdem die Möglichkeit mithilfe der Maus ein Rechteck über einen bestimmten Bereich zu ziehen um in diesen hineinzuzoomen. Dabei hilft dem Nutzer ein kleines Kreuz in der Mitte des Rechtecks um den gewünschten Bereich zu zentrieren. Um das Rechteck zu zeichnen  muss der Nutzer die linke Maustaste klicken und gedrückt halten, wenn diese losgelassen wird, dann wird in das Bild hineingezoomt und neu berechnet. Falls das Rechteck an der falschen Stelle angesetzt wurde, dann kann die rechte Maustaste geklickt werden und der Vorgang wird abgebrochen.
+Bevor der Server gestartet wird, wird der User gefragt, welche Auflösung das Mandelbrotpanel haben soll. Wenn für Breite und Höhe gültige Werte (>0) eingegeben werden, startet der Server. Wenn er gestartet wird und der Port bereits belegt oder benutzt ist, dann öffnet sich ein JOptionPane und fragt den Nutzer, ob der Server neu gestartet oder ob der Vorgang beendet werden soll. Nachdem der Server erfolgreich gestartet wurde, öffnet sich die UI und die Komponenten sind zu sehen. \par
+Auf der schwarzen Fläche auf der linken Seite der UI wird die berechnete Mandelbrotmenge dargestellt. Das weiße Kreuz dient dazu, die Stelle in die hineingezoomt wird, zu zentrieren. \par
+Auf der rechten Seite sind die Anzahl an verbundenen Clients sowie den aktuellen Iterations-Wert einsehbar. Des Weiteren wird angezeigt, wie hoch die Anzahl der Clients der verschiedenen Typen ist. \par
+Am unteren Rand sind die Buttons zur Navigation zu finden. Diese führen genau das aus, was auf ihnen steht. Der Restart-Button sorgt dafür, dass alle Variablen auf die Default-Werte zurückgesetzt werden und das Startbild berechnet wird. Zoom-In bzw. Zoom-Out zoomt das Bild um einen bestimmten Faktor herein- bzw. hinaus. Left, Up, Down, Right bewegen das Kreuz in die entsprechende Richtung um einen entsprechenden Faktor über das Bild. Zusätzlich kann mithilfe der Tastatur herein- (Plustaste), hinausgezoomt (Minustaste) werden und mit den entsprechenden Pfeiltasten kann das Kreuz nach links, rechts, oben und unten bewegt werden. Außerdem kann mithilfe der Escapetaste die Berechnung neugestartet und mit dem Mausrad herein- bzw. hinausgezoomt werden. \par
+Der Nutzer hat außerdem die Möglichkeit, mithilfe der Maus ein Rechteck über einen bestimmten Bereich zu ziehen, um in diesen hineinzuzoomen. Dabei hilft dem Nutzer ein kleines Kreuz in der Mitte des Rechtecks, um den gewünschten Bereich zu zentrieren. Um das Rechteck zu zeichnen, muss der Nutzer die linke Maustaste klicken und gedrückt halten. Wenn diese losgelassen wird, dann wird in das Bild hineingezoomt und neu berechnet. Falls das Rechteck an der falschen Stelle angesetzt wurde, kann die rechte Maustaste geklickt werden und der Vorgang wird abgebrochen.
 
 
 \section{Reflexion}
