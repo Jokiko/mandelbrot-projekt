@@ -8,9 +8,9 @@
       <script>
 		
 		//Variablen fuer Berechnung der Mandelbrotmenge
-		var width = 500;
-		var height = 500;
-		var iterations = 50;
+		var width;
+		var height;
+		var iterations;
 		var task = 0;
 		
 		var getY = 0;
@@ -52,7 +52,7 @@
 			//Sendet Server Nachricht
 			socket.send("connect");
 			
-			socket.send("task");
+			//socket.send("task");
 		};
 		
 		//Log bei Fehler
@@ -109,6 +109,9 @@
 				//socket.send("task");
 				break;
 			case "noTask":
+				socket.send("task");
+				break;
+			case "Connect success":
 				socket.send("task");
 				break;
 			case "size":
