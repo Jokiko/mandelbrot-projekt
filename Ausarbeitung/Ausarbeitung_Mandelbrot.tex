@@ -271,9 +271,73 @@ Messungen 2, 3 und 4 konnten bei der Server-Version 1.0 nicht gemessen werden, d
 
 \section{CUDA Client}
 \subsection{Verwendete Technologie}
+Compute Unified Device Architecture (CUDA) ist eine im Jahr 2007 von NVIDIA entwickelte Architektur zur parallelen
+Berechnung auf hauseigenen Grafikkarten. Diese wird bis heute von allen Grafikprozessoren der Generation G80 und aufwärts unterstützt 
+und stetig weiterentwickelt. Mit CUDA verfolgt NVIDIA das Ziel, das Feld der "general-purpose computing on graphics processing units" (GPGPU) 
+voranzutreiben und Softwareentwicklern ohne speziellem Hintergrundwissen in der Grafikkartenprogrammierung zu ermöglichen, die enorme parallele Rechenleistung 
+der Grafikkarte für computergrafikberechnungsferne Anwendungen nutzen zu können. \newline
+Das Schreiben erster sogenannter CUDA-Kernels gestaltet sich 
+für Entwickler mit C/C++ Hingergrund als besonders angenehm, da mit \enquote{CUDA for C/C++} eine sehr machtvolle API zur Verfügung steht, die
+die bekannte C/C++ Syntax nur um einige wenige Schlüsselwörter ergänzt. \newline 
+Erste Kernels lassen sich anhand der umfangreichen Dokumentation von NVIDIA 
+schnell umsetzen. Um allerdings wirklich effiziente Programme für Grafikprozessoren zu schreiben, sollte ein grundlegendes Verständnis des Aufbaus der 
+\enquote{CUDA-enabled} Grafikprozessoren vorhanden sein und das Management von globalem, geteiltem und konstantem Speicher verstanden werden.\newline
+CUDA folgt einer hierarchischen Struktur. Oberste Ebene bildet das sogenannte \enquote{Grid}, das mehrere Threadblöcke zusammenfasst. Ein Threadblock umfasst seit 2019 bis zu 1024 Threads.
+Ein beispielhafter Kernelaufruf \newline
+\newline
+\textit{kernel\_function}$<<<$Anzahl Blöcke, Anzahl Threads pro Block$>>>$(A, B, C) \newline
+\newline
+legt ein entsprechendes 
+\enquote{Grid} mit der entsprechenden Anzahl an entsprechend dimensionierten Threadblöcken an und übergibt die Parameter A, B und C. Die Parameter sind fortan im lokalen Speicher jedes Threads verfügbar.
+Da zwischen Host und Device Speicher hin- und hergewechselt werden muss, sollte mindestens einer der übergebenen Parameter ein entsprechender Pointer auf ein zuvor über \enquote{cudaMalloc} alloziiertes Gerätespeichersegment sein, in dem die Ergebnisse der GPU abgelegt werden. 
+Dieses Speichersegment wird dann nach Beendigung des Kernels in ein entsprechend großes Speichersegment des Hosts kopiert. Diese Transfers sollten allerdings mit bedacht durchgeführt werden, da sie äußerst kostspielig sind.\newline
+Alle Blöcke eines \enquote{Grids} führen immer denselben Kernel aus. 
+Zudem gilt es zu beachten, dass Threadblöcke auf der Hardwareseite von CUDA-fähigen GPUs in sogenannten \enquote{Warps} organisiert sind. Ein \enquote{Warp} ist eine Menge von 32 Threads, die pro Clockzyklus immer die selbe Instruktion ausführen müssen. Daher gilt es \enquote{Warp}-Divergenz zu
+vermeiden, also Bedingungen im Code, die einen unterschiedlichen Programmablauf innerhalb eines \enquote{Warps} verursachen können. Wenn ein Teil des Warps den einen Pfad gehen muss und der andere Teil einen anderen, so werden die Instruktionen nicht mehr parallel, sondern sequentiell ausgeführt. \newline
+Der Aufbau eines \enquote{CUDA for C/C++} Programms ist nahezu identisch zu einer normalen C/C++-Datei. Das gilt für Header- als auch für Sourcedateien.
+Die einzigen Unterschiede sind die Dateiendung (.cu statt .c bzw. .cuh statt .h) und die Verwendung der folgenden Schlüsselwörter
+\begin{itemize}
+\item \underline{\hspace{0.5cm}}host\underline{\hspace{0.5cm}} (kennzeichent Code der auf der CPU läuft und nur von dieser aufgerufen werden kann)
+\item \underline{\hspace{0.5cm}}global\underline{\hspace{0.5cm}} (kennzeichnet Kernelmethoden, die durch den Host gestartet werden können) 
+\item \underline{\hspace{0.5cm}}device\underline{\hspace{0.5cm}} (kennzeichnet Code der auf der GPU läuft und nur durch Kernel- bzw. andere Devicemethoden aufgerufen werden kann) 
+\item \underline{\hspace{0.5cm}}shared\underline{\hspace{0.5cm}}
+markiert Variablen, die in den geteilten Speicher geladen werden sollen. 
+\end{itemize}  
+Zusätzlich werden Kernelfunktionsaufrufe, wie zuvor bereits gesehen, durch ein \newline
+$<<<...>>>$ markiert, in welchem die Launchkonfigurationen des Kernels übergeben werden, also Anzahl der Blöcke, Anzahl der Threads pro Block und optional kann
+eine Menge an dynamischen geteilten Speicher übergeben werden. \newline
+Damit CUDA verwendet werden kann werden das NVIDIA CUDA Toolkit , eine enstprechende NVIDIA Grafikkarte und 
+der \textit{nvcc}-Compiler benötigt.
 \subsection{Bedienungsanleitung}
+Das abgegebene GitHub-Repository beinhaltet eine Microsoft Visual Studio Projektmappe. Diese kann bequem aus der 
+\enquote{Mandelbrotprojekt.sln} Datei erezugt werden und beinhaltet 3 Projekte mit den Namen 
+\begin{itemize}
+	\itemsep0pt
+	\item CPU Mandelbrot
+	\item CUDA MultiThread 
+	\item CUDA SingleThread
+\end{itemize}
+
+Der Sourcecode ist explizit für das Windowssystem geschrieben worden und verwendet unter anderem die Winsocket-Bibliothek für die Server-Client-Kommunikation. 
+Vor erstmaliger Nutzung sind folgende Schritte durchzuführen: 
+\begin{enumerate}
+	\setlength\itemsep{0.07em}
+	\item Installation der Microsoft Visual Studio 2019 IDE.
+	\item Installation des NVIDIA CUDA Toolkits Version 11.2.1.
+	\item Öffen der Projektmappe durch die \enquote{Mandelbrotprojekt.snl} Datei.
+	\item Auswahl des auszuführenden Projekts durch Rechtsklick auf Projektname $\rightarrow$ Als Startprojekt festlegen.
+\end{enumerate}
+
+Die Clients sind nicht dazu gedacht Eingaben durch den User anzunehmen, sondern als reine Rechenmaschinerie vorgesehen.
+Aus diesem Grund handelt es sich um \enquote{Konsolenapplikationen}, die lediglich Fehlermeldungen bzw. Erfolgsnachrichten und die tatsächliche Berechnungsdauer pro Aufgabe auf Clientseite ausgeben.
+Daher verfügt die Klasse \enquote{Client.cpp} über die beiden Makros PORT und IP. In diesen sollten dann, jenachdem unter welcher IP-v4-Adresse und unter welchem Port der Server gestartet wurde, die entsprechenden Werte eingetragen werden. Solange der Sourcecode des Servers nicht verändert wird, ist der Port standardmäßig auf 5000 gesetzt und muss  nicht angepasst werden.
+
 \subsection{Entwicklung und Probleme}
 
+Die Entwicklung der CUDA-Clients erfolgte nahezu reibungslos. Wie in 3.1 beschrieben ergänzt die CUDA API die C/C++ Syntax nur um wenige Schlüsselwörter und ansonsten handelt es sich um beinahe native C/C++ Programmierung. 
+Zunächst wurde die Client-Klasse, die in allen 3 abgegeben Versionen identisch ist, geschrieben. Die Kommunikation zwischen Java Server und C/C++ Winsockets erfolgte problemlos, was nicht sonderlich überrascht, da Java und C/C++ beide denselben Standard (IEEE 754) benutzen. Das Auslesen der Werte in den vom Server übermittelten Aufgaben erfolgte entsprechend ohne Probleme. Die Berechnungen müssen als Stringpakete an den Server zurückgesendet werden, da dieser, bedingt durch die Funktionsweise der anderen beiden Clients, nur solche annehmen und auswerten kann. Das erzeugt einen entsprechenden Overhead, der sowohl die CPU-Version als auch die CUDA-Versionen in der Realität stärker drosselt, als nötig wäre. Hinzu kommt der Overhead durch die TCP-Kommunikation an sich. Obwohl die Berechnung der ersten Zoomstufen der Mandelbrotmenge nur Bruchteile einer Sekunde dauern, beträgt die reale Darstellungszeit des fertigen Bildes durch die CPU-Version -- verwendet wurde ein Intel Core i5-8400 -- bei einer Auflösung von 500x500 ca. 1,6 Sekunden und bei der CUDA-Multithread-Version -- verwendet wurde eine GTX 1060 -- ca. 0,5 Sekunden. Die Messdaten sind nur stellvertretend für lokale TCP-Verbindungen und gelten für das \enquote{default} Bild der Mandelbrotmenge.
+Die CUDA-Single-Thread Version, die ursprünglich vorgesehen war, erwies sich als äußerst nutzlos, da ein einzelner CUDA-Core nicht schneller ist als ein CPU-Core und das Kopieren der Aufgaben in den Device-Speicher einen Overhead erzeugt. Gleichzeitig sollte keine hochperformante parallelisierte CUDA Anwendung geschrieben werden, weswegen in der CUDA-Multithread-Version als Mittelweg ein einzelner Threadblock mit bis zu 1024 Threads genutzt wird. Die Anzahl der genutzten Threads hängt dabei vom gewählten Breitenwert des Bildes ab, wodurch die Multithreadvariante nur bis zu entsprechenden Auflösungen mit einem Breitenwert von 1024 genutzt werden kann.
+Eine kleine Herausforderung ist dadurch entstanden, dass die Kommunikation mit dem Server auf Strings basiert. Da CUDA keine Strings kennt und es wenig sinnvoll wäre die Ergebnisse jedes Threads zunächst auf die CPU zu kopieren und dann umzuwandeln, mussten die Ergebnisse von den CUDA-Thread selbst in ASCII Zeichen konvertiert und in der richtigen Reihenfolge in das Ergebnispaket geschrieben werden. Das erforderte eine kleine Spielerei mit den Offsets der parellelen Pointerzugriffe des Ergebnissbuffers. Nachdem diese erste kleine Hürde gelöst war, lief der CUDA-Client lokal am Schnellsten und da insbesondere der Websockteclient bis zuletzt Probleme verursachte, war eine Optimierung des Codes bezüglich der Speicherzugriffe bzw. eine noch stärker parallelisierte Version nicht mehr vorgesehen. 
 \section{JavaScript Client}
 \subsection{Verwendete Technologie}
 Die eigentliche Berechnung der Mandelbrotmenge erfolgt im Javascript Client nicht durch JavaScript selbst, sondern durch WebAssembly, ein Format binärer Anweisungen für Stack-basierte virtuelle Maschinen. Als Ziel der portablen Kompilierung höherer Programmiersprachen ermöglicht es den Einsatz dieser in Webanwendungen. Auf dieses Projekt bezogen bedeutet das also, dass die Mandelbrotmenge in einer Funktion berechnet wird, die ursprünglich in C++ geschrieben wurde, jedoch im Browser ausgeführt werden kann, was wiederum zu einer schnelleren Ausführung als unter einer Berechnung in JavaScript selbst führt. Dazu muss die Datei „mandelbrot.cpp“, welche die benötigte Funktion „plot“ beinhaltet, in das WebAssembly-Format übersetzt werden. Zu diesem Zweck wird das online Tool „WebAssembly Explorer“ verwendet, welches die C++ Datei zunächst in das .wat-Textformat kompiliert und schließlich in die benötigte .wasm-Datei im Byteformat konvertiert. \par
